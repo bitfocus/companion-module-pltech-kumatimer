@@ -1,6 +1,6 @@
 {
   "name": "companion-module-pltech-kumatimer",
-  "version": "2.0.3",
+  "version": "2.0.4",
   "description": "Bitfocus Companion module for KUMA Timer (HTTP/JSON)",
   "type": "module",
   "main": "dist/main.js",
