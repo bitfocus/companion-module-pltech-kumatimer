@@ -29,4 +29,11 @@ export const configFields: SomeCompanionConfigField[] = [
 		min: 200,
 		max: 5000,
 	},
+	{
+		type: 'textinput',
+		id: 'password',
+		label: 'Shared password (leave empty if KUMA host has no password set)',
+		width: 12,
+		default: '',
+	},
 ]

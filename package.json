@@ -1,43 +1,36 @@
 {
-	"name": "companion-module-pltech-kumatimer",
-	"version": "1.8.0",
-	"description": "Bitfocus Companion module for KUMA Timer (HTTP/JSON)",
-	"type": "module",
-	"main": "dist/main.js",
-	"packageManager": "yarn@4.9.1",
-	"engines": {
-		"node": "^22.20",
-		"yarn": "^4"
-	},
-	"scripts": {
-		"build": "tsc",
-		"build:watch": "tsc --watch",
-		"test": "vitest run",
-		"test:watch": "vitest",
-		"lint": "eslint src tests",
-		"lint:fix": "eslint src tests --fix",
-		"package": "yarn build && companion-module-build && node scripts/fix-manifest.mjs",
-		"format": "prettier --write ."
-	},
-	"prettier": "@companion-module/tools/.prettierrc.json",
-	"dependencies": {
-		"@companion-module/base": "~1.14.1"
-	},
-	"devDependencies": {
-		"@companion-module/tools": "^2.6.1",
-		"@types/node": "^22.19.17",
-		"eslint": "^10.2.0",
-		"prettier": "^3.8.1",
-		"typescript": "~5.9.3",
-		"typescript-eslint": "^8.58.0",
-		"vitest": "^3.2.0"
-	},
-	"repository": {
-		"type": "git",
-		"url": "git+https://github.com/bitfocus/companion-module-pltech-kumatimer.git"
-	},
-	"bugs": {
-		"url": "https://github.com/bitfocus/companion-module-pltech-kumatimer/issues"
-	},
-	"homepage": "https://kuma.pl-tech.co.uk"
+  "name": "companion-module-pltech-kumatimer",
+  "version": "2.0.3",
+  "description": "Bitfocus Companion module for KUMA Timer (HTTP/JSON)",
+  "type": "module",
+  "main": "dist/main.js",
+  "packageManager": "yarn@4.9.1",
+  "engines": {
+    "node": "^22.20",
+    "yarn": "^4"
+  },
+  "scripts": {
+    "build": "tsc",
+    "build:watch": "tsc --watch",
+    "dev": "yarn build && node scripts/fix-manifest.mjs && rsync -a --delete --exclude='tests/' --exclude='.git/' --exclude='*.tgz' --exclude='eslint.config.mjs' --exclude='vitest.config.ts' --exclude='tsconfig.eslint.json' --exclude='MIGRATION_NOTES.md' ./ $HOME/companion-dev/pltech-kumatimer/",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "lint": "eslint src tests",
+    "lint:fix": "eslint src tests --fix",
+    "package": "yarn build && companion-module-build && node scripts/fix-manifest.mjs",
+    "format": "prettier --write ."
+  },
+  "prettier": "@companion-module/tools/.prettierrc.json",
+  "dependencies": {
+    "@companion-module/base": "^2.0.4"
+  },
+  "devDependencies": {
+    "@companion-module/tools": "^3.0.0",
+    "@types/node": "^22.19.17",
+    "eslint": "^10.2.0",
+    "prettier": "^3.8.1",
+    "typescript": "~5.9.3",
+    "typescript-eslint": "^8.58.0",
+    "vitest": "^3.2.0"
+  }
 }

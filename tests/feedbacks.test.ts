@@ -139,15 +139,15 @@ describe('setupFeedbacks', () => {
 	})
 
 	describe('is_countup', () => {
-		it('returns true when is_countup is true', () => {
-			const f = setupFeedbacks(() => ({ is_countup: true }))
+		it('returns true when status is countup', () => {
+			const f = setupFeedbacks(() => ({ status: 'countup' }))
 			expect(cb(f, 'is_countup')()).toBe(true)
 		})
-		it('returns false when is_countup is false', () => {
-			const f = setupFeedbacks(() => ({ is_countup: false }))
+		it('returns false when status is not countup', () => {
+			const f = setupFeedbacks(() => ({ status: 'live' }))
 			expect(cb(f, 'is_countup')()).toBe(false)
 		})
-		it('returns false when is_countup is undefined', () => {
+		it('returns false when status is undefined', () => {
 			const f = setupFeedbacks(() => ({}))
 			expect(cb(f, 'is_countup')()).toBe(false)
 		})

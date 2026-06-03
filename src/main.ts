@@ -1,13 +1,15 @@
-import { InstanceBase, InstanceStatus, runEntrypoint, type SomeCompanionConfigField } from '@companion-module/base'
-import { type KumaConfig, configFields } from './config.js'
-import { type KumaApiStatus } from './types.js'
+import { InstanceBase, InstanceStatus, createModuleLogger, type SomeCompanionConfigField } from '@companion-module/base'
+import { configFields } from './config.js'
+import { type KumaApiStatus, type KumaConfig, type KumaTypes } from './types.js'
 import { setupActions } from './actions.js'
 import { setupFeedbacks } from './feedbacks.js'
 import { setupVariables, updateVariables, clearVariables } from './variables.js'
 import { setupPresets } from './presets.js'
 import UpgradeScripts from './upgrades.js'
 
-class KumaTimerInstance extends InstanceBase<KumaConfig> {
+const log = createModuleLogger('KUMA')
+
+class KumaTimerInstance extends InstanceBase<KumaTypes> {
 	config!: KumaConfig
 	private _pollTimer: ReturnType<typeof setInterval> | null = null
 	private _polling = false
@@ -18,12 +20,13 @@ class KumaTimerInstance extends InstanceBase<KumaConfig> {
 
 	// ─── Lifecycle ────────────────────────────────────────────────
 
-	async init(config: KumaConfig): Promise<void> {
+	async init(config: KumaConfig, _isFirstInit: boolean, _secrets: undefined): Promise<void> {
 		this.config = config
 		this.setActionDefinitions(setupActions(async (action, params) => this.sendCommand(action, params)))
 		this.setFeedbackDefinitions(setupFeedbacks(() => this._lastStatus))
 		setupVariables(this)
-		this.setPresetDefinitions(setupPresets())
+		const { structure, presets } = setupPresets()
+		this.setPresetDefinitions(structure, presets)
 		this._startPolling()
 	}
 
@@ -31,7 +34,7 @@ class KumaTimerInstance extends InstanceBase<KumaConfig> {
 		this._stopPolling()
 	}
 
-	async configUpdated(config: KumaConfig): Promise<void> {
+	async configUpdated(config: KumaConfig, _secrets: undefined): Promise<void> {
 		this.config = config
 		this._stopPolling()
 		this._startPolling()
@@ -76,7 +79,7 @@ class KumaTimerInstance extends InstanceBase<KumaConfig> {
 			this._lastStatus = data
 			this.updateStatus(InstanceStatus.Ok)
 			updateVariables(this, data)
-			this.checkFeedbacks()
+			this.checkAllFeedbacks()
 			// Regenerate presets every ~10s (every 20th poll at 500ms)
 			this._pollCount++
 			if (this._pollCount % 20 === 0) {
@@ -85,14 +88,15 @@ class KumaTimerInstance extends InstanceBase<KumaConfig> {
 				if (newCues !== this._lastCuesJson || newPresets !== this._lastPresetsJson) {
 					this._lastCuesJson = newCues
 					this._lastPresetsJson = newPresets
-					this.setPresetDefinitions(setupPresets(data.cues || [], data.presets || []))
+					const { structure, presets } = setupPresets(data.cues || [], data.presets || [])
+					this.setPresetDefinitions(structure, presets)
 				}
 			}
 		} catch (e) {
 			this._lastStatus = {}
 			this.updateStatus(InstanceStatus.ConnectionFailure, (e as Error).message)
 			clearVariables(this)
-			this.checkFeedbacks()
+			this.checkAllFeedbacks()
 		} finally {
 			this._polling = false
 		}
@@ -102,22 +106,33 @@ class KumaTimerInstance extends InstanceBase<KumaConfig> {
 
 	async sendCommand(action: string, params: Record<string, unknown> = {}): Promise<void> {
 		const url = `${this._baseUrl()}/api/command`
+		const payload: Record<string, unknown> = { action, ...params }
+		// Host gates /api/command on a `web_control_password` config field. When
+		// set, every command must include `key` matching it (else 401 auth_required).
+		// We only inject the key when configured — empty password = no-auth host,
+		// no-key payload, host's `provided != configured_pwd` check sees both as
+		// empty and lets the command through.
+		const password = (this.config.password || '').trim()
+		if (password) {
+			payload['key'] = password
+		}
 		try {
 			const res = await fetch(url, {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ action, ...params }),
+				body: JSON.stringify(payload),
 				signal: AbortSignal.timeout(3000),
 			})
 			if (!res.ok) {
 				const msg = await res.text()
-				this.log('warn', `Command '${action}' failed: ${msg}`)
+				log.warn(`Command '${action}' failed: ${msg}`)
 			}
 		} catch (e) {
-			this.log('error', `HTTP error sending '${action}': ${(e as Error).message}`)
+			log.error(`HTTP error sending '${action}': ${(e as Error).message}`)
 			this.updateStatus(InstanceStatus.ConnectionFailure)
 		}
 	}
 }
 
-runEntrypoint(KumaTimerInstance, UpgradeScripts)
+export default KumaTimerInstance
+export { UpgradeScripts }

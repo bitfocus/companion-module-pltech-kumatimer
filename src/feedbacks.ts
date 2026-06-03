@@ -68,7 +68,10 @@ export function setupFeedbacks(lastStatus: () => KumaApiStatus): CompanionFeedba
 			type: 'boolean',
 			defaultStyle: { bgcolor: combineRgb(200, 100, 0), color: combineRgb(255, 255, 255) },
 			options: [],
-			callback: () => !!lastStatus().is_countup,
+			// /api/status exposes count-up via the `status` enum ('countup'),
+			// NOT a separate `is_countup` field — reading the latter left this
+			// feedback permanently false (audit, Jun 2026).
+			callback: () => lastStatus().status === 'countup',
 		},
 	}
 }

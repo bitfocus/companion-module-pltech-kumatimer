@@ -3,4 +3,5 @@ import type { KumaConfig } from './types.js'
 
 const UpgradeScripts: CompanionStaticUpgradeScript<KumaConfig>[] = []
 
+export { UpgradeScripts }
 export default UpgradeScripts

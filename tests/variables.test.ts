@@ -18,8 +18,9 @@ describe('setupVariables', () => {
 		setupVariables(instance)
 		const mock = (instance as unknown as { setVariableDefinitions: ReturnType<typeof vi.fn> }).setVariableDefinitions
 		expect(mock).toHaveBeenCalledOnce()
-		const defs = mock.mock.calls[0][0] as Array<{ variableId: string }>
-		const ids = defs.map((d) => d.variableId)
+		// In v2 the API takes an object keyed by variableId, not an array.
+		const defs = mock.mock.calls[0][0] as Record<string, { name: string }>
+		const ids = Object.keys(defs)
 		expect(ids).toContain('timer')
 		expect(ids).toContain('timer_seconds')
 		expect(ids).toContain('status')
@@ -29,7 +30,15 @@ describe('setupVariables', () => {
 		expect(ids).toContain('overtime')
 		expect(ids).toContain('progress')
 		expect(ids).toContain('sms_active')
-		expect(ids).toHaveLength(9)
+		// v2.0.1: per-preset (6 × 3 = 18) and per-cue (12 × 4 = 48)
+		// variables for use in user-built button labels. Thomas
+		// request 8 May 2026.
+		expect(ids).toContain('preset_1_minutes')
+		expect(ids).toContain('preset_6_label')
+		expect(ids).toContain('cue_1_name')
+		expect(ids).toContain('cue_12_label')
+		// 9 base + 18 preset + 48 cue = 75
+		expect(ids).toHaveLength(75)
 	})
 
 	it('calls clearVariables (setVariableValues) immediately', () => {

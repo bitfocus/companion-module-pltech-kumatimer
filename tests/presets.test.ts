@@ -6,34 +6,59 @@ vi.mock('@companion-module/base', () => ({
 
 import { setupPresets } from '../src/presets.js'
 
-type ButtonPreset = {
-	type: 'button'
-	category: string
+type SimplePreset = {
+	type: 'simple'
 	name: string
 	style: { text: string; bgcolor: number; color: number; size: string | number }
 	steps: Array<{ down: Array<{ actionId: string; options: Record<string, unknown> }>; up: unknown[] }>
 	feedbacks: Array<{ feedbackId: string; options: Record<string, unknown> }>
 }
 
-function btn(presets: ReturnType<typeof setupPresets>, id: string): ButtonPreset {
-	return presets[id] as ButtonPreset
+function btn(result: ReturnType<typeof setupPresets>, id: string): SimplePreset {
+	return result.presets[id] as unknown as SimplePreset
+}
+
+function sectionDefs(result: ReturnType<typeof setupPresets>, sectionId: string): readonly string[] {
+	const section = result.structure.find((s) => s.id === sectionId)
+	if (!section) throw new Error(`Section ${sectionId} not found`)
+	return section.definitions as readonly string[]
 }
 
 describe('setupPresets', () => {
 	describe('called with no arguments (defaults)', () => {
 		const p = setupPresets()
 
-		it('has a "cue_empty" placeholder when no cues provided', () => {
-			expect(p['cue_empty']).toBeDefined()
-			expect(btn(p, 'cue_empty').category).toBe('Cues')
+		it('returns { structure, presets } shape (v2)', () => {
+			expect(p.structure).toBeDefined()
+			expect(Array.isArray(p.structure)).toBe(true)
+			expect(p.presets).toBeDefined()
+			expect(typeof p.presets).toBe('object')
 		})
 
-		it('generates 6 preset buttons with P1–P6 labels when no values provided', () => {
+		it('has a "cue_empty" placeholder when no cues provided', () => {
+			expect(p.presets['cue_empty']).toBeDefined()
+			expect(sectionDefs(p, 'cues')).toContain('cue_empty')
+		})
+
+		it('generates 6 preset buttons referencing live label variable', () => {
+			// v2.0.1 — button text uses $(kumatimer:preset_N_label) so
+			// dragged buttons auto-update when the host config changes
+			// (setPresetDefinitions only refreshes the LIBRARY panel,
+			// not previously-placed buttons). Library `name` keeps
+			// the literal current label so the operator can scan and
+			// pick from the panel.
 			for (let i = 0; i < 6; i++) {
 				const preset = btn(p, `preset_${i}`)
 				expect(preset).toBeDefined()
-				expect(preset.style.text).toBe(`P${i + 1}`)
-				expect(preset.category).toBe('Presets')
+				expect(preset.style.text).toBe(`$(kumatimer:preset_${i + 1}_label)`)
+				expect(preset.name).toContain(`P${i + 1}`)
+				expect(sectionDefs(p, 'presets')).toContain(`preset_${i}`)
+			}
+		})
+
+		it('all presets use type: "simple" (v2)', () => {
+			for (const id of Object.keys(p.presets)) {
+				expect(btn(p, id).type).toBe('simple')
 			}
 		})
 	})
@@ -41,17 +66,20 @@ describe('setupPresets', () => {
 	describe('called with preset values', () => {
 		const p = setupPresets([], [10, 15, 20, 30, 45, 60])
 
-		it('uses preset values as button labels', () => {
-			expect(btn(p, 'preset_0').style.text).toBe('10M')
-			expect(btn(p, 'preset_3').style.text).toBe('30M')
-			expect(btn(p, 'preset_5').style.text).toBe('60M')
+		it('button text uses live preset_N_label variable', () => {
+			// v2.0.1: text is variable, name is literal label.
+			expect(btn(p, 'preset_0').style.text).toBe('$(kumatimer:preset_1_label)')
+			expect(btn(p, 'preset_0').name).toContain('10M')
+			expect(btn(p, 'preset_3').name).toContain('30M')
+			expect(btn(p, 'preset_5').name).toContain('60M')
 		})
 
-		it('falls back to Pn for missing preset values', () => {
+		it('library name falls back to Pn for unconfigured slots, button text always uses variable', () => {
 			const partial = setupPresets([], [5, 10])
-			expect(btn(partial, 'preset_0').style.text).toBe('5M')
-			expect(btn(partial, 'preset_1').style.text).toBe('10M')
-			expect(btn(partial, 'preset_2').style.text).toBe('P3')
+			expect(btn(partial, 'preset_0').style.text).toBe('$(kumatimer:preset_1_label)')
+			expect(btn(partial, 'preset_0').name).toContain('5M')
+			expect(btn(partial, 'preset_1').name).toContain('10M')
+			expect(btn(partial, 'preset_2').name).toContain('P3')
 		})
 	})
 
@@ -60,12 +88,12 @@ describe('setupPresets', () => {
 		const p = setupPresets(cues)
 
 		it('does not generate cue_empty when cues are provided', () => {
-			expect(p['cue_empty']).toBeUndefined()
+			expect(p.presets['cue_empty']).toBeUndefined()
 		})
 
 		it('generates one button per cue', () => {
 			for (let i = 0; i < cues.length; i++) {
-				expect(p[`cue_${i}`]).toBeDefined()
+				expect(p.presets[`cue_${i}`]).toBeDefined()
 			}
 		})
 
@@ -90,9 +118,19 @@ describe('setupPresets', () => {
 			}
 		})
 
-		it('replaces " — " with newline in button text', () => {
-			// "John Smith — Keynote" → "John Smith\nKeynote"
-			expect(btn(p, 'cue_0').style.text).toBe('John Smith\nKeynote')
+		it('cue button text uses live cue_N_name variable', () => {
+			// v2.0.1: same auto-update pattern as preset buttons.
+			// Library `name` keeps the literal cue label for the
+			// panel display; button text resolves $(...) live.
+			expect(btn(p, 'cue_0').style.text).toBe('$(kumatimer:cue_1_name)')
+			expect(btn(p, 'cue_0').name).toBe('John Smith — Keynote')
+		})
+
+		it('cue ids are listed in the cues structure section', () => {
+			const defs = sectionDefs(p, 'cues')
+			for (let i = 0; i < cues.length; i++) {
+				expect(defs).toContain(`cue_${i}`)
+			}
 		})
 	})
 
@@ -116,7 +154,7 @@ describe('setupPresets', () => {
 		})
 
 		it('PAUSE feedback style text is RESUME', () => {
-			const pauseFeedback = btn(p, 'pause').feedbacks[0] as ButtonPreset['feedbacks'][0] & {
+			const pauseFeedback = btn(p, 'pause').feedbacks[0] as SimplePreset['feedbacks'][0] & {
 				style: { text: string }
 			}
 			expect(pauseFeedback.style.text).toBe('RESUME')
@@ -129,7 +167,7 @@ describe('setupPresets', () => {
 		})
 
 		it('HIDE feedback style text is SHOW', () => {
-			const hideFeedback = btn(p, 'hide').feedbacks[0] as ButtonPreset['feedbacks'][0] & {
+			const hideFeedback = btn(p, 'hide').feedbacks[0] as SimplePreset['feedbacks'][0] & {
 				style: { text: string }
 			}
 			expect(hideFeedback.style.text).toBe('SHOW')
@@ -202,36 +240,45 @@ describe('setupPresets', () => {
 		})
 	})
 
-	describe('categories', () => {
+	describe('structure (v2 categorisation replacement)', () => {
 		const p = setupPresets(['Cue A'], [5])
 
-		it('transport buttons are in Transport category', () => {
-			for (const id of ['start', 'stop', 'pause', 'hide', 'add1m', 'sub1m', 'mode_timer', 'mode_clock']) {
-				expect(btn(p, id).category).toBe('Transport')
+		it('exposes 5 sections in stable order', () => {
+			expect(p.structure.map((s) => s.id)).toEqual(['transport', 'presets', 'cues', 'info', 'sms'])
+		})
+
+		it('transport section contains all transport buttons', () => {
+			const defs = sectionDefs(p, 'transport')
+			for (const id of ['start', 'stop', 'pause', 'hide', 'add1m', 'sub1m', 'mode_timer', 'mode_clock', 'count_up']) {
+				expect(defs).toContain(id)
 			}
 		})
 
-		it('preset buttons are in Presets category', () => {
+		it('presets section contains all 6 preset buttons', () => {
+			const defs = sectionDefs(p, 'presets')
 			for (let i = 0; i < 6; i++) {
-				expect(btn(p, `preset_${i}`).category).toBe('Presets')
+				expect(defs).toContain(`preset_${i}`)
 			}
 		})
 
-		it('cue buttons are in Cues category', () => {
-			expect(btn(p, 'cue_0').category).toBe('Cues')
-			expect(btn(p, 'next_cue').category).toBe('Cues')
-			expect(btn(p, 'prev_cue').category).toBe('Cues')
+		it('cues section contains cue buttons + navigation', () => {
+			const defs = sectionDefs(p, 'cues')
+			expect(defs).toContain('cue_0')
+			expect(defs).toContain('next_cue')
+			expect(defs).toContain('prev_cue')
 		})
 
-		it('info buttons are in Info category', () => {
+		it('info section contains info display buttons', () => {
+			const defs = sectionDefs(p, 'info')
 			for (const id of ['timer_display', 'status_display', 'cue_name']) {
-				expect(btn(p, id).category).toBe('Info')
+				expect(defs).toContain(id)
 			}
 		})
 
-		it('sms buttons are in SMS category', () => {
-			expect(btn(p, 'send_sms').category).toBe('SMS')
-			expect(btn(p, 'cancel_sms').category).toBe('SMS')
+		it('sms section contains SMS buttons', () => {
+			const defs = sectionDefs(p, 'sms')
+			expect(defs).toContain('send_sms')
+			expect(defs).toContain('cancel_sms')
 		})
 	})
 })
