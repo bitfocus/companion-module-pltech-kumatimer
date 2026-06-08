@@ -263,7 +263,7 @@ export function setupActions(
 			name: 'QLab: Set Followed Cue (cue mode)',
 			options: [{ type: 'textinput', id: 'cue', label: 'Cue number or id', default: '' }],
 			callback: async (action: { options: Record<string, unknown> }) =>
-				sendCommand('qlab_set_follow_cue', { cue: String(action.options['cue'] ?? '') }),
+				sendCommand('qlab_set_follow_cue', { cue: (action.options['cue'] as string | undefined) ?? '' }),
 		},
 	}
 }

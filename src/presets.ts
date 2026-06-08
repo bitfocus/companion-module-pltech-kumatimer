@@ -359,7 +359,9 @@ export function setupPresets(cues: string[] = [], presetValues: number[] = []): 
 		name: 'QLab: Triggers On / Off',
 		style: { text: 'QLAB\nTRIGGERS', size: '14', color: WHITE, bgcolor: GREY },
 		steps: [{ down: [{ actionId: 'qlab_triggers_enable', options: { mode: 'toggle' } }], up: [] }],
-		feedbacks: [{ feedbackId: 'qlab_triggers_enabled', options: {}, style: { color: WHITE, bgcolor: combineRgb(0, 90, 60) } }],
+		feedbacks: [
+			{ feedbackId: 'qlab_triggers_enabled', options: {}, style: { color: WHITE, bgcolor: combineRgb(0, 90, 60) } },
+		],
 	}
 	qlabIds.push('qlab_triggers')
 
