@@ -312,10 +312,62 @@ export function setupPresets(cues: string[] = [], presetValues: number[] = []): 
 	}
 	smsIds.push('cancel_sms')
 
+	// ─── QLab follow ──────────────────────────────────────────────
+	const qlabIds: CompanionPresetReference[] = []
+	const AMBER = combineRgb(170, 119, 17)
+
+	// TCR Visible / Hidden (audition hold). Default green = visible; when held
+	// the qlab_hold feedback paints it amber "TCR HIDDEN".
+	presets['qlab_hold'] = {
+		type: 'simple',
+		name: 'QLab: TCR Visible / Hidden (hold)',
+		style: { text: 'TCR\nVISIBLE', size: '14', color: WHITE, bgcolor: combineRgb(30, 110, 70) },
+		steps: [{ down: [{ actionId: 'qlab_hold', options: { mode: 'toggle' } }], up: [] }],
+		feedbacks: [{ feedbackId: 'qlab_hold', options: {}, style: { text: 'TCR\nHIDDEN', color: BLACK, bgcolor: AMBER } }],
+	}
+	qlabIds.push('qlab_hold')
+
+	// Follow On / Off — green when following a cue, amber when idle.
+	presets['qlab_follow'] = {
+		type: 'simple',
+		name: 'QLab: Follow On / Off',
+		style: { text: 'QLAB\nFOLLOW', size: '14', color: WHITE, bgcolor: GREY },
+		steps: [{ down: [{ actionId: 'qlab_follow_enable', options: { mode: 'toggle' } }], up: [] }],
+		feedbacks: [
+			{ feedbackId: 'qlab_following', options: {}, style: { text: 'QLAB\n▸ LIVE', color: WHITE, bgcolor: GREEN } },
+			{ feedbackId: 'qlab_follow_idle', options: {}, style: { text: 'QLAB\nFOLLOW', color: BLACK, bgcolor: AMBER } },
+		],
+	}
+	qlabIds.push('qlab_follow')
+
+	// Status display — shows the followed cue number/id.
+	presets['qlab_status'] = {
+		type: 'simple',
+		name: 'QLab: Followed cue (status)',
+		style: { text: 'QLAB\n$(pltech-kumatimer:qlab_cue)', size: '14', color: WHITE, bgcolor: BLACK },
+		steps: [],
+		feedbacks: [
+			{ feedbackId: 'qlab_following', options: {}, style: { color: WHITE, bgcolor: combineRgb(0, 150, 90) } },
+			{ feedbackId: 'qlab_follow_idle', options: {}, style: { color: BLACK, bgcolor: AMBER } },
+		],
+	}
+	qlabIds.push('qlab_status')
+
+	// Triggers On / Off.
+	presets['qlab_triggers'] = {
+		type: 'simple',
+		name: 'QLab: Triggers On / Off',
+		style: { text: 'QLAB\nTRIGGERS', size: '14', color: WHITE, bgcolor: GREY },
+		steps: [{ down: [{ actionId: 'qlab_triggers_enable', options: { mode: 'toggle' } }], up: [] }],
+		feedbacks: [{ feedbackId: 'qlab_triggers_enabled', options: {}, style: { color: WHITE, bgcolor: combineRgb(0, 90, 60) } }],
+	}
+	qlabIds.push('qlab_triggers')
+
 	const structure: CompanionPresetSection[] = [
 		{ id: 'transport', name: 'Transport', definitions: transportIds },
 		{ id: 'presets', name: 'Presets', definitions: presetIds },
 		{ id: 'cues', name: 'Cues', definitions: cueIds },
+		{ id: 'qlab', name: 'QLab', definitions: qlabIds },
 		{ id: 'info', name: 'Info', definitions: infoIds },
 		{ id: 'sms', name: 'SMS', definitions: smsIds },
 	]

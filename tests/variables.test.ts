@@ -37,8 +37,11 @@ describe('setupVariables', () => {
 		expect(ids).toContain('preset_6_label')
 		expect(ids).toContain('cue_1_name')
 		expect(ids).toContain('cue_12_label')
-		// 9 base + 18 preset + 48 cue = 75
-		expect(ids).toHaveLength(75)
+		expect(ids).toContain('qlab_following')
+		expect(ids).toContain('qlab_cue')
+		expect(ids).toContain('qlab_hold')
+		// 16 base (9 + 7 qlab) + 18 preset + 48 cue = 82
+		expect(ids).toHaveLength(82)
 	})
 
 	it('calls clearVariables (setVariableValues) immediately', () => {

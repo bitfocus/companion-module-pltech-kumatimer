@@ -22,7 +22,12 @@ class KumaTimerInstance extends InstanceBase<KumaTypes> {
 
 	async init(config: KumaConfig, _isFirstInit: boolean, _secrets: undefined): Promise<void> {
 		this.config = config
-		this.setActionDefinitions(setupActions(async (action, params) => this.sendCommand(action, params)))
+		this.setActionDefinitions(
+			setupActions(
+				async (action, params) => this.sendCommand(action, params),
+				() => this._lastStatus,
+			),
+		)
 		this.setFeedbackDefinitions(setupFeedbacks(() => this._lastStatus))
 		setupVariables(this)
 		const { structure, presets } = setupPresets()

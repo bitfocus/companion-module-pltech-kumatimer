@@ -17,7 +17,7 @@ function getCallbackAndMock(id: string): {
 }
 
 describe('setupActions', () => {
-	it('exposes all 18 actions', () => {
+	it('exposes all 22 actions', () => {
 		const { sendCommand } = getCallbackAndMock('start')
 		const actions = setupActions(sendCommand)
 		const ids = Object.keys(actions)
@@ -40,8 +40,12 @@ describe('setupActions', () => {
 			'send_sms',
 			'cancel_sms',
 			'count_up',
+			'qlab_hold',
+			'qlab_follow_enable',
+			'qlab_triggers_enable',
+			'qlab_set_follow_cue',
 		]
-		expect(ids).toHaveLength(18)
+		expect(ids).toHaveLength(22)
 		for (const id of expected) expect(ids).toContain(id)
 	})
 

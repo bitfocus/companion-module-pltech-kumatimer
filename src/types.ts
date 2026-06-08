@@ -41,4 +41,12 @@ export interface KumaApiStatus {
 	display_mode?: string
 	sms_active?: boolean
 	is_countup?: boolean
+	// QLab follow (Direction 3) — exposed by the host's /api/status.
+	qlab_triggers_enabled?: boolean
+	qlab_follow_enabled?: boolean
+	qlab_following?: boolean // currently mirroring a running cue
+	qlab_follow_cue?: string
+	qlab_follow_mode?: string // 'active' | 'cue'
+	qlab_health?: string // 'ok' | 'idle' | 'error' | 'off'
+	qlab_hold?: boolean // audition-safe HOLD armed (TCR hidden)
 }

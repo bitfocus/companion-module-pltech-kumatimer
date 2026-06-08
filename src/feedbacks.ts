@@ -73,5 +73,45 @@ export function setupFeedbacks(lastStatus: () => KumaApiStatus): CompanionFeedba
 			// feedback permanently false (audit, Jun 2026).
 			callback: () => lastStatus().status === 'countup',
 		},
+
+		// ─── QLab follow ──────────────────────────────────────────────
+		qlab_following: {
+			name: 'QLab: following a running cue',
+			type: 'boolean',
+			defaultStyle: { bgcolor: combineRgb(0, 150, 90), color: combineRgb(255, 255, 255) },
+			options: [],
+			callback: () => !!lastStatus().qlab_following,
+		},
+		qlab_follow_idle: {
+			name: 'QLab: follow enabled but no cue (idle)',
+			type: 'boolean',
+			defaultStyle: { bgcolor: combineRgb(150, 110, 0), color: combineRgb(0, 0, 0) },
+			options: [],
+			callback: () => {
+				const s = lastStatus()
+				return !!s.qlab_follow_enabled && !s.qlab_following && !s.qlab_hold
+			},
+		},
+		qlab_hold: {
+			name: 'QLab: TCR HIDDEN (audition hold armed)',
+			type: 'boolean',
+			defaultStyle: { bgcolor: combineRgb(170, 119, 17), color: combineRgb(0, 0, 0) },
+			options: [],
+			callback: () => !!lastStatus().qlab_hold,
+		},
+		qlab_follow_enabled: {
+			name: 'QLab: follow is enabled',
+			type: 'boolean',
+			defaultStyle: { bgcolor: combineRgb(0, 90, 60), color: combineRgb(255, 255, 255) },
+			options: [],
+			callback: () => !!lastStatus().qlab_follow_enabled,
+		},
+		qlab_triggers_enabled: {
+			name: 'QLab: triggers are enabled',
+			type: 'boolean',
+			defaultStyle: { bgcolor: combineRgb(0, 90, 60), color: combineRgb(255, 255, 255) },
+			options: [],
+			callback: () => !!lastStatus().qlab_triggers_enabled,
+		},
 	}
 }

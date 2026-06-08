@@ -165,7 +165,12 @@ describe('setupFeedbacks', () => {
 		expect(ids).toContain('low_time')
 		expect(ids).toContain('sms_active')
 		expect(ids).toContain('is_countup')
-		expect(ids).toHaveLength(9)
+		expect(ids).toContain('qlab_following')
+		expect(ids).toContain('qlab_follow_idle')
+		expect(ids).toContain('qlab_hold')
+		expect(ids).toContain('qlab_follow_enabled')
+		expect(ids).toContain('qlab_triggers_enabled')
+		expect(ids).toHaveLength(14)
 	})
 
 	it('uses latest status snapshot on every call', () => {

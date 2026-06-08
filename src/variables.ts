@@ -43,6 +43,14 @@ export function setupVariables(instance: InstanceBase<KumaTypes>): void {
 		overtime: { name: 'Overtime (true/false)' },
 		progress: { name: 'Progress bar %' },
 		sms_active: { name: 'SMS message active (true/false)' },
+		// QLab follow
+		qlab_follow_enabled: { name: 'QLab follow enabled (true/false)' },
+		qlab_following: { name: 'QLab following a running cue (true/false)' },
+		qlab_cue: { name: 'QLab followed cue (number/id)' },
+		qlab_mode: { name: 'QLab follow mode (active/cue)' },
+		qlab_health: { name: 'QLab follow health (ok/idle/error/off)' },
+		qlab_hold: { name: 'QLab TCR hidden / hold armed (true/false)' },
+		qlab_triggers_enabled: { name: 'QLab triggers enabled (true/false)' },
 	}
 	// v2.0.0 BETA: per-preset variables for use in user-built button
 	// labels. Auto-update from /api/status every poll. Thomas request
@@ -79,6 +87,13 @@ export function updateVariables(instance: InstanceBase<KumaTypes>, data: KumaApi
 		overtime: String(data.overtime ?? false),
 		progress: String(data.progress ?? 0),
 		sms_active: String(data.sms_active ?? false),
+		qlab_follow_enabled: String(data.qlab_follow_enabled ?? false),
+		qlab_following: String(data.qlab_following ?? false),
+		qlab_cue: data.qlab_follow_cue || '—',
+		qlab_mode: (data.qlab_follow_mode ?? 'active').toUpperCase(),
+		qlab_health: (data.qlab_health ?? 'off').toUpperCase(),
+		qlab_hold: String(data.qlab_hold ?? false),
+		qlab_triggers_enabled: String(data.qlab_triggers_enabled ?? false),
 	}
 	// Preset variables — read from `preset_seconds` (v1.12.0+) when
 	// present, otherwise derive from the legacy `presets` minutes
@@ -128,6 +143,13 @@ export function clearVariables(instance: InstanceBase<KumaTypes>): void {
 		overtime: 'false',
 		progress: '0',
 		sms_active: 'false',
+		qlab_follow_enabled: 'false',
+		qlab_following: 'false',
+		qlab_cue: '—',
+		qlab_mode: 'ACTIVE',
+		qlab_health: 'OFF',
+		qlab_hold: 'false',
+		qlab_triggers_enabled: 'false',
 	}
 	for (let i = 1; i <= PRESET_SLOTS; i++) {
 		values[`preset_${i}_minutes`] = ''

@@ -1,7 +1,29 @@
 import type { CompanionActionDefinitions } from '@companion-module/base'
+import type { KumaApiStatus } from './types.js'
+
+// 'toggle' | 'on' | 'off' helper: resolve the desired on-state, reading the
+// current value for a toggle.
+function resolveOnState(mode: unknown, current: boolean): boolean {
+	if (mode === 'on') return true
+	if (mode === 'off') return false
+	return !current // toggle
+}
+
+const onOffToggle = {
+	type: 'dropdown' as const,
+	id: 'mode',
+	label: 'Action',
+	default: 'toggle',
+	choices: [
+		{ id: 'toggle', label: 'Toggle' },
+		{ id: 'on', label: 'On' },
+		{ id: 'off', label: 'Off' },
+	],
+}
 
 export function setupActions(
 	sendCommand: (action: string, params?: Record<string, unknown>) => Promise<void>,
+	getStatus: () => KumaApiStatus = () => ({}),
 ): CompanionActionDefinitions {
 	return {
 		start: {
@@ -206,6 +228,42 @@ export function setupActions(
 			name: 'Count Up',
 			options: [],
 			callback: async () => sendCommand('count_up'),
+		},
+
+		// ─── QLab follow (Direction 3) ────────────────────────────────
+		qlab_hold: {
+			name: 'QLab: TCR Visible / Hidden (audition hold)',
+			options: [onOffToggle],
+			callback: async (action: { options: Record<string, unknown> }) => {
+				// 'on' = hold = TCR HIDDEN. Toggle reads current hold state.
+				const on = resolveOnState(action.options['mode'], !!getStatus().qlab_hold)
+				return sendCommand('qlab_follow_hold', { on })
+			},
+		},
+
+		qlab_follow_enable: {
+			name: 'QLab: Follow On / Off',
+			options: [onOffToggle],
+			callback: async (action: { options: Record<string, unknown> }) => {
+				const on = resolveOnState(action.options['mode'], !!getStatus().qlab_follow_enabled)
+				return sendCommand('qlab_follow_enable', { on })
+			},
+		},
+
+		qlab_triggers_enable: {
+			name: 'QLab: Triggers On / Off',
+			options: [onOffToggle],
+			callback: async (action: { options: Record<string, unknown> }) => {
+				const on = resolveOnState(action.options['mode'], !!getStatus().qlab_triggers_enabled)
+				return sendCommand('qlab_triggers_enable', { on })
+			},
+		},
+
+		qlab_set_follow_cue: {
+			name: 'QLab: Set Followed Cue (cue mode)',
+			options: [{ type: 'textinput', id: 'cue', label: 'Cue number or id', default: '' }],
+			callback: async (action: { options: Record<string, unknown> }) =>
+				sendCommand('qlab_set_follow_cue', { cue: String(action.options['cue'] ?? '') }),
 		},
 	}
 }

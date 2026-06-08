@@ -243,8 +243,8 @@ describe('setupPresets', () => {
 	describe('structure (v2 categorisation replacement)', () => {
 		const p = setupPresets(['Cue A'], [5])
 
-		it('exposes 5 sections in stable order', () => {
-			expect(p.structure.map((s) => s.id)).toEqual(['transport', 'presets', 'cues', 'info', 'sms'])
+		it('exposes 6 sections in stable order', () => {
+			expect(p.structure.map((s) => s.id)).toEqual(['transport', 'presets', 'cues', 'qlab', 'info', 'sms'])
 		})
 
 		it('transport section contains all transport buttons', () => {
