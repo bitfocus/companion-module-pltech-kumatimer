@@ -7,7 +7,11 @@ const baseConfig = await generateEslintConfig({
 /** @type {import('eslint').Linter.Config[]} */
 const customConfig = [
 	{
-		// Use tsconfig.eslint.json so tests/ directory is included in type-aware linting
+		// Type-aware linting for our source + the top-level tests/ dir and the
+		// vitest config. Scoped to TS files only — applying a `project` globally
+		// would force the .mjs config/scripts files (which aren't in any tsconfig)
+		// through the typed parser and break `eslint .`.
+		files: ['src/**/*.ts', 'tests/**/*.ts', 'vitest.config.ts'],
 		languageOptions: {
 			parserOptions: {
 				project: './tsconfig.eslint.json',
@@ -15,8 +19,9 @@ const customConfig = [
 		},
 	},
 	{
-		// Relax rules for test files
-		files: ['tests/**/*.ts'],
+		// Test files and the vitest config legitimately import dev-only deps and
+		// don't need exported-boundary types.
+		files: ['tests/**/*.ts', 'vitest.config.ts'],
 		rules: {
 			'@typescript-eslint/explicit-module-boundary-types': 'off',
 			'@typescript-eslint/no-floating-promises': 'off',

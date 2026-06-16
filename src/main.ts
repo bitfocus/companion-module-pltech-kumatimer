@@ -129,8 +129,15 @@ class KumaTimerInstance extends InstanceBase<KumaTypes> {
 				signal: AbortSignal.timeout(3000),
 			})
 			if (!res.ok) {
-				const msg = await res.text()
-				log.warn(`Command '${action}' failed: ${msg}`)
+				const msg = (await res.text()).trim()
+				log.warn(`Command '${action}' failed: HTTP ${res.status} ${msg}`)
+				// Surface the failure to the operator instead of staying green.
+				// A wrong/missing password makes /api/command return 401 while
+				// /api/status still polls fine, so the connection would otherwise
+				// look healthy while every button silently does nothing. The next
+				// successful poll (≤ poll_interval) restores Ok for transient errors.
+				const detail = res.status === 401 ? 'Auth failed — check the password' : `HTTP ${res.status}`
+				this.updateStatus(InstanceStatus.ConnectionFailure, detail)
 			}
 		} catch (e) {
 			log.error(`HTTP error sending '${action}': ${(e as Error).message}`)

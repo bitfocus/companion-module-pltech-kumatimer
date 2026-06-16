@@ -4,6 +4,7 @@ import {
 	type CompanionPresetReference,
 	type CompanionPresetSection,
 } from '@companion-module/base'
+import { CUE_SLOTS } from './variables.js'
 
 export interface KumaPresets {
 	structure: CompanionPresetSection[]
@@ -189,7 +190,10 @@ export function setupPresets(cues: string[] = [], presetValues: number[] = []): 
 		}
 		cueIds.push('cue_empty')
 	} else {
-		cues.forEach((label, i) => {
+		// Cap at CUE_SLOTS — only the first N cues have backing $cue_N_name
+		// variables defined in variables.ts. Generating a preset beyond that
+		// would reference an undefined variable and render a blank button.
+		cues.slice(0, CUE_SLOTS).forEach((label, i) => {
 			const id = `cue_${i}`
 			// Same variable-text trick as presets above: dragged buttons
 			// auto-update when host edits cue name/duration. Falls back

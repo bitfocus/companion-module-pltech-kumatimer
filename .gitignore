@@ -1,6 +1,10 @@
 node_modules/
-dist/
-pkg/
-*.tgz
-.yarn/install-state.gz
+package-lock.json
+/pkg
+/*.tgz
+/dist
+DEBUG-*
+/.yarn
+/.vscode
 .DS_Store
+.yarn/install-state.gz

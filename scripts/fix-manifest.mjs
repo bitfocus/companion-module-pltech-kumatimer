@@ -1,4 +1,3 @@
-#!/usr/bin/env node
 /**
  * Post-package fixup.
  *
@@ -13,7 +12,7 @@
 import { readFileSync, writeFileSync } from 'node:fs'
 
 const manifestPath = 'companion/manifest.json'
-const basePkgPath  = 'node_modules/@companion-module/base/package.json'
+const basePkgPath = 'node_modules/@companion-module/base/package.json'
 
 const baseVer = JSON.parse(readFileSync(basePkgPath, 'utf8')).version
 const manifest = JSON.parse(readFileSync(manifestPath, 'utf8'))

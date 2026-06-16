@@ -7,7 +7,8 @@ import type { KumaTypes, KumaApiStatus } from './types.js'
 // who need more can request a bump or we add a "current cue" pointer
 // pattern in a future revision.
 const PRESET_SLOTS = 6
-const CUE_SLOTS = 12
+export const CUE_SLOTS = 12
+const LAYOUT_SLOTS = 12
 
 /** Format M*60+S as "M:SS" or "H:MM:SS" depending on size. */
 function formatHMS(totalSeconds: number): string {
@@ -72,6 +73,12 @@ export function setupVariables(instance: InstanceBase<KumaTypes>): void {
 		definitions[`cue_${i}_seconds`] = { name: `Cue ${i} — total seconds` }
 		definitions[`cue_${i}_label`] = { name: `Cue ${i} — formatted label` }
 	}
+	// Layout presets ("Looks"). `layout_active` = active preset name for button
+	// feedback; `layout_N_name` for slot-labelled recall buttons.
+	definitions['layout_active'] = { name: 'Active layout preset name' }
+	for (let i = 1; i <= LAYOUT_SLOTS; i++) {
+		definitions[`layout_${i}_name`] = { name: `Layout preset ${i} — name` }
+	}
 	instance.setVariableDefinitions(definitions)
 	clearVariables(instance)
 }
@@ -129,6 +136,14 @@ export function updateVariables(instance: InstanceBase<KumaTypes>, data: KumaApi
 			values[`cue_${idx}_label`] = ''
 		}
 	}
+	// Layout preset variables — active name + per-slot names.
+	const layouts = data.layout_presets ?? []
+	const activeId = data.layout_preset_active ?? ''
+	const activeName = layouts.find((p) => p.id === activeId)?.name ?? ''
+	values['layout_active'] = activeName || '—'
+	for (let i = 0; i < LAYOUT_SLOTS; i++) {
+		values[`layout_${i + 1}_name`] = layouts[i]?.name ?? ''
+	}
 	instance.setVariableValues(values)
 }
 
@@ -161,6 +176,10 @@ export function clearVariables(instance: InstanceBase<KumaTypes>): void {
 		values[`cue_${i}_minutes`] = ''
 		values[`cue_${i}_seconds`] = ''
 		values[`cue_${i}_label`] = ''
+	}
+	values['layout_active'] = '—'
+	for (let i = 1; i <= LAYOUT_SLOTS; i++) {
+		values[`layout_${i}_name`] = ''
 	}
 	instance.setVariableValues(values)
 }

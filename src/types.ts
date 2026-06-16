@@ -49,4 +49,8 @@ export interface KumaApiStatus {
 	qlab_follow_mode?: string // 'active' | 'cue'
 	qlab_health?: string // 'ok' | 'idle' | 'error' | 'off'
 	qlab_hold?: boolean // audition-safe HOLD armed (TCR hidden)
+	// Layout presets ("Looks") — lightweight {slot, id, name} list + the active
+	// preset id. Recall via the recall_layout action (by slot or name).
+	layout_presets?: { slot: number; id: string; name: string }[]
+	layout_preset_active?: string
 }

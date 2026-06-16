@@ -152,6 +152,42 @@ export function setupActions(
 			callback: async () => sendCommand('prev_cue'),
 		},
 
+		recall_layout: {
+			name: 'Recall Layout Preset',
+			options: [
+				{
+					type: 'dropdown',
+					id: 'mode',
+					label: 'Recall by',
+					default: 'slot',
+					choices: [
+						{ id: 'slot', label: 'Slot number' },
+						{ id: 'name', label: 'Name' },
+					],
+				},
+				{
+					type: 'number',
+					id: 'slot',
+					label: 'Slot (1 = first) — used when "Recall by" = Slot number',
+					default: 1,
+					min: 1,
+					max: 99,
+				},
+				{
+					type: 'textinput',
+					id: 'name',
+					label: 'Preset name — used when "Recall by" = Name',
+					default: '',
+				},
+			],
+			callback: async (action: { options: Record<string, unknown> }) => {
+				if (action.options['mode'] === 'name') {
+					return sendCommand('recall_layout', { name: (action.options['name'] as string | undefined) ?? '' })
+				}
+				return sendCommand('recall_layout', { slot: Number(action.options['slot']) })
+			},
+		},
+
 		set_mode: {
 			name: 'Set Display Mode (TIMER / CLOCK)',
 			options: [
