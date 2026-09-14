@@ -153,7 +153,29 @@ describe('setupFeedbacks', () => {
 		})
 	})
 
-	it('exposes all 9 feedbacks', () => {
+	describe('v1.19.0 feedbacks', () => {
+		const cases: Array<[string, keyof KumaApiStatus]> = [
+			['omt_enabled', 'omt_enabled'],
+			['omt_active', 'omt_active'],
+			['ltc_generator_enabled', 'ltc_tx_enabled'],
+			['ltc_generator_active', 'ltc_tx_active'],
+			['ltc_chase_enabled', 'ltc_chase_enabled'],
+			['ltc_chase_active', 'ltc_chase_active'],
+			['dsan_rx_active', 'dsan_rx_active'],
+		]
+		for (const [feedbackId, statusKey] of cases) {
+			it(`${feedbackId} mirrors status.${statusKey}`, () => {
+				const on = setupFeedbacks(() => ({ [statusKey]: true }) as KumaApiStatus)
+				expect(cb(on, feedbackId)()).toBe(true)
+				const off = setupFeedbacks(() => ({ [statusKey]: false }) as KumaApiStatus)
+				expect(cb(off, feedbackId)()).toBe(false)
+				const missing = setupFeedbacks(() => ({}))
+				expect(cb(missing, feedbackId)()).toBe(false)
+			})
+		}
+	})
+
+	it('exposes all 21 feedbacks', () => {
 		const f = setupFeedbacks(() => ({}))
 		const ids = Object.keys(f)
 		expect(ids).toContain('is_live')
@@ -170,7 +192,14 @@ describe('setupFeedbacks', () => {
 		expect(ids).toContain('qlab_hold')
 		expect(ids).toContain('qlab_follow_enabled')
 		expect(ids).toContain('qlab_triggers_enabled')
-		expect(ids).toHaveLength(14)
+		expect(ids).toContain('omt_enabled')
+		expect(ids).toContain('omt_active')
+		expect(ids).toContain('ltc_generator_enabled')
+		expect(ids).toContain('ltc_generator_active')
+		expect(ids).toContain('ltc_chase_enabled')
+		expect(ids).toContain('ltc_chase_active')
+		expect(ids).toContain('dsan_rx_active')
+		expect(ids).toHaveLength(21)
 	})
 
 	it('uses latest status snapshot on every call', () => {

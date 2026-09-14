@@ -17,7 +17,7 @@ function getCallbackAndMock(id: string): {
 }
 
 describe('setupActions', () => {
-	it('exposes all 23 actions', () => {
+	it('exposes all 26 actions', () => {
 		const { sendCommand } = getCallbackAndMock('start')
 		const actions = setupActions(sendCommand)
 		const ids = Object.keys(actions)
@@ -45,8 +45,11 @@ describe('setupActions', () => {
 			'qlab_triggers_enable',
 			'qlab_set_follow_cue',
 			'recall_layout',
+			'omt_enable',
+			'ltc_generator_enable',
+			'ltc_chase_enable',
 		]
-		expect(ids).toHaveLength(23)
+		expect(ids).toHaveLength(26)
 		for (const id of expected) expect(ids).toContain(id)
 	})
 
@@ -70,6 +73,37 @@ describe('setupActions', () => {
 				await callback()
 				expect(sendCommand).toHaveBeenCalledOnce()
 				expect(sendCommand).toHaveBeenCalledWith(command)
+			})
+		}
+	})
+
+	describe('v1.19.0 toggle actions', () => {
+		const cases: Array<[string, string, string]> = [
+			['omt_enable', 'omt_enable', 'omt_enabled'],
+			['ltc_generator_enable', 'ltc_generator_enable', 'ltc_tx_enabled'],
+			['ltc_chase_enable', 'ltc_chase_enable', 'ltc_chase_enabled'],
+		]
+		for (const [actionId, command, statusKey] of cases) {
+			it(`${actionId} sends explicit on/off`, async () => {
+				const sendCommand = vi.fn().mockResolvedValue(undefined)
+				const actions = setupActions(sendCommand, () => ({ [statusKey]: false }))
+				const action = actions[actionId] as {
+					callback: (a: { options: Record<string, unknown> }) => Promise<void>
+				}
+				await action.callback({ options: { mode: 'on' } })
+				expect(sendCommand).toHaveBeenCalledWith(command, { on: true })
+				await action.callback({ options: { mode: 'off' } })
+				expect(sendCommand).toHaveBeenCalledWith(command, { on: false })
+			})
+
+			it(`${actionId} toggle mode flips the current status value`, async () => {
+				const sendCommand = vi.fn().mockResolvedValue(undefined)
+				const actions = setupActions(sendCommand, () => ({ [statusKey]: true }))
+				const action = actions[actionId] as {
+					callback: (a: { options: Record<string, unknown> }) => Promise<void>
+				}
+				await action.callback({ options: { mode: 'toggle' } })
+				expect(sendCommand).toHaveBeenCalledWith(command, { on: false })
 			})
 		}
 	})

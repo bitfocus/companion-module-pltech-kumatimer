@@ -113,5 +113,56 @@ export function setupFeedbacks(lastStatus: () => KumaApiStatus): CompanionFeedba
 			options: [],
 			callback: () => !!lastStatus().qlab_triggers_enabled,
 		},
+
+		// ─── v1.19.0: OMT / LTC Generator / Chase to Timecode / DSAN RX ───
+		omt_enabled: {
+			name: 'OMT: output is enabled',
+			type: 'boolean',
+			defaultStyle: { bgcolor: combineRgb(0, 90, 60), color: combineRgb(255, 255, 255) },
+			options: [],
+			callback: () => !!lastStatus().omt_enabled,
+		},
+		omt_active: {
+			name: 'OMT: sender is live',
+			type: 'boolean',
+			defaultStyle: { bgcolor: combineRgb(0, 150, 90), color: combineRgb(255, 255, 255) },
+			options: [],
+			callback: () => !!lastStatus().omt_active,
+		},
+		ltc_generator_enabled: {
+			name: 'LTC Generator: is enabled',
+			type: 'boolean',
+			defaultStyle: { bgcolor: combineRgb(0, 90, 60), color: combineRgb(255, 255, 255) },
+			options: [],
+			callback: () => !!lastStatus().ltc_tx_enabled,
+		},
+		ltc_generator_active: {
+			name: 'LTC Generator: transport is live',
+			type: 'boolean',
+			defaultStyle: { bgcolor: combineRgb(0, 150, 90), color: combineRgb(255, 255, 255) },
+			options: [],
+			callback: () => !!lastStatus().ltc_tx_active,
+		},
+		ltc_chase_enabled: {
+			name: 'Chase to Timecode: is enabled',
+			type: 'boolean',
+			defaultStyle: { bgcolor: combineRgb(0, 90, 60), color: combineRgb(255, 255, 255) },
+			options: [],
+			callback: () => !!lastStatus().ltc_chase_enabled,
+		},
+		ltc_chase_active: {
+			name: 'Chase to Timecode: armed and counting to next cue',
+			type: 'boolean',
+			defaultStyle: { bgcolor: combineRgb(0, 150, 90), color: combineRgb(255, 255, 255) },
+			options: [],
+			callback: () => !!lastStatus().ltc_chase_active,
+		},
+		dsan_rx_active: {
+			name: 'DSAN Limitimer: live RX signal',
+			type: 'boolean',
+			defaultStyle: { bgcolor: combineRgb(0, 150, 90), color: combineRgb(255, 255, 255) },
+			options: [],
+			callback: () => !!lastStatus().dsan_rx_active,
+		},
 	}
 }

@@ -53,4 +53,15 @@ export interface KumaApiStatus {
 	// preset id. Recall via the recall_layout action (by slot or name).
 	layout_presets?: { slot: number; id: string; name: string }[]
 	layout_preset_active?: string
+	// v1.19.0 additions — OMT / LTC Generator / Chase to Timecode / DSAN
+	// Limitimer RX. `_enabled` mirrors the Settings config toggle,
+	// `_active` is true only once the underlying sender/thread/decoder
+	// is actually running (mirrors the ndi_active / omt_active split).
+	omt_enabled?: boolean
+	omt_active?: boolean
+	ltc_tx_enabled?: boolean
+	ltc_tx_active?: boolean
+	ltc_chase_enabled?: boolean
+	ltc_chase_active?: boolean // true only while armed + counting to a cue target
+	dsan_rx_active?: boolean
 }

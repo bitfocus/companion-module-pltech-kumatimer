@@ -301,5 +301,33 @@ export function setupActions(
 			callback: async (action: { options: Record<string, unknown> }) =>
 				sendCommand('qlab_set_follow_cue', { cue: (action.options['cue'] as string | undefined) ?? '' }),
 		},
+
+		// ─── v1.19.0: OMT / LTC Generator / Chase to Timecode ─────────
+		omt_enable: {
+			name: 'OMT Output On / Off',
+			options: [onOffToggle],
+			callback: async (action: { options: Record<string, unknown> }) => {
+				const on = resolveOnState(action.options['mode'], !!getStatus().omt_enabled)
+				return sendCommand('omt_enable', { on })
+			},
+		},
+
+		ltc_generator_enable: {
+			name: 'LTC Generator On / Off',
+			options: [onOffToggle],
+			callback: async (action: { options: Record<string, unknown> }) => {
+				const on = resolveOnState(action.options['mode'], !!getStatus().ltc_tx_enabled)
+				return sendCommand('ltc_generator_enable', { on })
+			},
+		},
+
+		ltc_chase_enable: {
+			name: 'Chase to Timecode On / Off',
+			options: [onOffToggle],
+			callback: async (action: { options: Record<string, unknown> }) => {
+				const on = resolveOnState(action.options['mode'], !!getStatus().ltc_chase_enabled)
+				return sendCommand('ltc_chase_enable', { on })
+			},
+		},
 	}
 }
