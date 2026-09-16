@@ -4,14 +4,27 @@ Bitfocus Companion module for **KUMA Timer** — control the timer via HTTP/JSON
 
 ## Features
 
+**27 actions:**
+
 - Start, pause, reset, hide/show the timer
-- Load cues from the cue sheet with active-cue highlight feedback
-- Load presets (P1–P6) with dynamic labels
-- +1 min / −1 min adjustments
-- Switch between Timer and Clock display modes
+- +1 min / −1 min, arbitrary +/- MM:SS adjustment
+- **Time Cut nudge** (`cut_nudge`) — bump the Time Glide / Stealth Jump
+  panel's "Cut:" total by any delta live, without cancelling first (4
+  ready-made +1m/−1m/+1s/−1s presets included)
+- Load time by seconds, MM:SS or HH:MM:SS
+- Load presets (P1–P6) and cues from the cue sheet, next/prev cue
+- Recall a saved custom Layout
+- Switch between Timer and Clock display modes, start Count Up
 - Send and cancel on-screen SMS messages
-- Live variables: `timer`, `timer_seconds`, `status`, `cue_name`, `cue_index`, `overtime`, `progress`, `sms_active`, `display_mode`
-- 8 feedbacks for dynamic button colours (live, paused, standby, hidden, overtime, cue active, low time, sms)
+- QLab: toggle TCR HOLD, follow, triggers, set the followed cue
+- OMT output enable, LTC Generator enable, LTC Chase-to-Timecode enable
+
+**21 feedbacks** for dynamic button colours — live, paused, standby,
+hidden, overtime, count-up, cue active, low time, SMS active, QLab
+follow/hold/triggers state, OMT/LTC Generator/LTC Chase enabled+active,
+DSAN RX active.
+
+**Live variables:** `timer`, `timer_seconds`, `status`, `cue_name`, `cue_index`, `overtime`, `progress`, `sms_active`, `display_mode`
 
 ## Requirements
 

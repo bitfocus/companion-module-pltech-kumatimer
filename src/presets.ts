@@ -109,6 +109,28 @@ export function setupPresets(cues: string[] = [], presetValues: number[] = []): 
 	}
 	transportIds.push('sub1m')
 
+	// Time Cut "Cut:" total nudge — Glide/Jump panel (Pawel 16 Sep 2026).
+	// Distinct from +1m/-1m above: those load_time-adjust the countdown
+	// directly; these bump the Time Glide/Stealth Jump "Cut:" total live,
+	// for the "show caller asks for another minute mid-cut" workflow —
+	// see cut_nudge in actions.ts.
+	const cutNudges: Array<{ id: string; label: string; delta: number }> = [
+		{ id: 'cutNudgeAdd1m', label: '+1m', delta: 60 },
+		{ id: 'cutNudgeSub1m', label: '-1m', delta: -60 },
+		{ id: 'cutNudgeAdd1s', label: '+1s', delta: 1 },
+		{ id: 'cutNudgeSub1s', label: '-1s', delta: -1 },
+	]
+	for (const { id, label, delta } of cutNudges) {
+		presets[id] = {
+			type: 'simple',
+			name: `Time Cut ${label}`,
+			style: { text: `CUT\n${label}`, size: '14', color: WHITE, bgcolor: combineRgb(120, 70, 0) },
+			steps: [{ down: [{ actionId: 'cut_nudge', options: { delta_seconds: delta } }], up: [] }],
+			feedbacks: [],
+		}
+		transportIds.push(id)
+	}
+
 	// Mode switching
 	presets['mode_timer'] = {
 		type: 'simple',

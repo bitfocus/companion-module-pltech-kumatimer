@@ -91,6 +91,27 @@ export function setupActions(
 			},
 		},
 
+		cut_nudge: {
+			// "Cut:" total nudge (Pawel 16 Sep 2026) — for the Time Glide /
+			// Stealth Jump panel's "Cut:" field, which now holds a TOTAL
+			// amount to remove rather than a target duration (see host's
+			// timer_mixin.py::_apply_cut_amount). This bumps that total by
+			// delta_seconds — positive to remove more, negative to remove
+			// less — live, with no Cancel-then-reapply needed on the host
+			// side. If no cut is active yet, a positive nudge starts one
+			// fresh from 0. Four presets below wire up +1m/-1m/+1s/-1s
+			// buttons against this one parameterized action, matching the
+			// live-show workflow: press +1m when a show caller asks for a
+			// minute, press it again for another.
+			name: 'Nudge Time Cut (+/- seconds)',
+			options: [{ type: 'number', id: 'delta_seconds', label: 'Delta (seconds)', default: 60, min: -3599, max: 3599 }],
+			callback: async (action: { options: Record<string, unknown> }) => {
+				const delta = Number(action.options['delta_seconds'])
+				if (!delta) return
+				return sendCommand('cut_nudge', { delta_seconds: delta })
+			},
+		},
+
 		load_time: {
 			name: 'Load Time (seconds)',
 			options: [{ type: 'number', id: 'seconds', label: 'Duration (seconds)', default: 300, min: 0, max: 86399 }],

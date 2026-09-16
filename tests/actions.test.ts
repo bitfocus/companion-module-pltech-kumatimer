@@ -17,7 +17,7 @@ function getCallbackAndMock(id: string): {
 }
 
 describe('setupActions', () => {
-	it('exposes all 26 actions', () => {
+	it('exposes all 27 actions', () => {
 		const { sendCommand } = getCallbackAndMock('start')
 		const actions = setupActions(sendCommand)
 		const ids = Object.keys(actions)
@@ -29,6 +29,7 @@ describe('setupActions', () => {
 			'add_minute',
 			'sub_minute',
 			'adjust_time',
+			'cut_nudge',
 			'load_time',
 			'load_time_mmss',
 			'load_time_hhmmss',
@@ -49,7 +50,7 @@ describe('setupActions', () => {
 			'ltc_generator_enable',
 			'ltc_chase_enable',
 		]
-		expect(ids).toHaveLength(26)
+		expect(ids).toHaveLength(27)
 		for (const id of expected) expect(ids).toContain(id)
 	})
 
@@ -159,6 +160,32 @@ describe('setupActions', () => {
 			const { callback, sendCommand } = getCallbackAndMock('load_time_hhmmss')
 			await callback({ options: { hours: 0, minutes: 5, seconds: 30 } })
 			expect(sendCommand).toHaveBeenCalledWith('load_time', { seconds: 330 })
+		})
+	})
+
+	describe('cut_nudge', () => {
+		it('sends cut_nudge with a positive delta', async () => {
+			const { callback, sendCommand } = getCallbackAndMock('cut_nudge')
+			await callback({ options: { delta_seconds: 60 } })
+			expect(sendCommand).toHaveBeenCalledWith('cut_nudge', { delta_seconds: 60 })
+		})
+
+		it('sends cut_nudge with a negative delta', async () => {
+			const { callback, sendCommand } = getCallbackAndMock('cut_nudge')
+			await callback({ options: { delta_seconds: -1 } })
+			expect(sendCommand).toHaveBeenCalledWith('cut_nudge', { delta_seconds: -1 })
+		})
+
+		it('does nothing for a zero delta', async () => {
+			const { callback, sendCommand } = getCallbackAndMock('cut_nudge')
+			await callback({ options: { delta_seconds: 0 } })
+			expect(sendCommand).not.toHaveBeenCalled()
+		})
+
+		it('coerces string delta_seconds to number', async () => {
+			const { callback, sendCommand } = getCallbackAndMock('cut_nudge')
+			await callback({ options: { delta_seconds: '30' } })
+			expect(sendCommand).toHaveBeenCalledWith('cut_nudge', { delta_seconds: 30 })
 		})
 	})
 
