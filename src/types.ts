@@ -64,4 +64,8 @@ export interface KumaApiStatus {
 	ltc_chase_enabled?: boolean
 	ltc_chase_active?: boolean // true only while armed + counting to a cue target
 	dsan_rx_active?: boolean
+	// RC2, 17 Sep 2026 — Blackmagic "Live KUMA Timer" output. Dev/test
+	// feature with no persisted config flag (unlike omt_enabled etc.), so
+	// there's only one state bit: whether it's actually on air right now.
+	blackmagic_active?: boolean
 }

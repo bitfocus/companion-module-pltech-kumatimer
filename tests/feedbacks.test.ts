@@ -162,6 +162,7 @@ describe('setupFeedbacks', () => {
 			['ltc_chase_enabled', 'ltc_chase_enabled'],
 			['ltc_chase_active', 'ltc_chase_active'],
 			['dsan_rx_active', 'dsan_rx_active'],
+			['blackmagic_active', 'blackmagic_active'],
 		]
 		for (const [feedbackId, statusKey] of cases) {
 			it(`${feedbackId} mirrors status.${statusKey}`, () => {
@@ -199,7 +200,8 @@ describe('setupFeedbacks', () => {
 		expect(ids).toContain('ltc_chase_enabled')
 		expect(ids).toContain('ltc_chase_active')
 		expect(ids).toContain('dsan_rx_active')
-		expect(ids).toHaveLength(21)
+		expect(ids).toContain('blackmagic_active')
+		expect(ids).toHaveLength(22)
 	})
 
 	it('uses latest status snapshot on every call', () => {

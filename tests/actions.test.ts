@@ -17,7 +17,7 @@ function getCallbackAndMock(id: string): {
 }
 
 describe('setupActions', () => {
-	it('exposes all 27 actions', () => {
+	it('exposes all 28 actions', () => {
 		const { sendCommand } = getCallbackAndMock('start')
 		const actions = setupActions(sendCommand)
 		const ids = Object.keys(actions)
@@ -49,8 +49,9 @@ describe('setupActions', () => {
 			'omt_enable',
 			'ltc_generator_enable',
 			'ltc_chase_enable',
+			'blackmagic_enable',
 		]
-		expect(ids).toHaveLength(27)
+		expect(ids).toHaveLength(28)
 		for (const id of expected) expect(ids).toContain(id)
 	})
 

@@ -350,5 +350,19 @@ export function setupActions(
 				return sendCommand('ltc_chase_enable', { on })
 			},
 		},
+
+		blackmagic_enable: {
+			// RC2, 17 Sep 2026 (Pawel: "guzik do companion z START i STOP
+			// Blackmagic output... lub toggle") — starts/stops "Live KUMA
+			// Timer" on the Blackmagic output. No persisted config flag to
+			// mirror (unlike omt_enable) — Toggle mode reads whether it's
+			// actually on air right now (blackmagic_active).
+			name: 'Blackmagic Output On / Off',
+			options: [onOffToggle],
+			callback: async (action: { options: Record<string, unknown> }) => {
+				const on = resolveOnState(action.options['mode'], !!getStatus().blackmagic_active)
+				return sendCommand('blackmagic_enable', { on })
+			},
+		},
 	}
 }

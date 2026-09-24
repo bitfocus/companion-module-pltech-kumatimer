@@ -164,5 +164,16 @@ export function setupFeedbacks(lastStatus: () => KumaApiStatus): CompanionFeedba
 			options: [],
 			callback: () => !!lastStatus().dsan_rx_active,
 		},
+
+		// ─── v1.19.1: Blackmagic DeckLink output ───
+		blackmagic_active: {
+			// No "enabled" counterpart — Blackmagic has no persisted config
+			// flag (unlike omt_enabled etc.), so this is the only state bit.
+			name: 'Blackmagic: output is live',
+			type: 'boolean',
+			defaultStyle: { bgcolor: combineRgb(0, 150, 90), color: combineRgb(255, 255, 255) },
+			options: [],
+			callback: () => !!lastStatus().blackmagic_active,
+		},
 	}
 }
