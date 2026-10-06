@@ -52,6 +52,17 @@ export function setupVariables(instance: InstanceBase<KumaTypes>): void {
 		qlab_health: { name: 'QLab follow health (ok/idle/error/off)' },
 		qlab_hold: { name: 'QLab TCR hidden / hold armed (true/false)' },
 		qlab_triggers_enabled: { name: 'QLab triggers enabled (true/false)' },
+		// v2.5.0: state flags that used to exist only as feedbacks. External
+		// dashboards read variables (GET /api/variable/...), not feedbacks, so
+		// every one is mirrored here under the SAME id as its feedback.
+		omt_enabled: { name: 'OMT: output is enabled (true/false)' },
+		omt_active: { name: 'OMT: sender is live (true/false)' },
+		ltc_generator_enabled: { name: 'LTC Generator: is enabled (true/false)' },
+		ltc_generator_active: { name: 'LTC Generator: transport is live (true/false)' },
+		ltc_chase_enabled: { name: 'Chase to Timecode: is enabled (true/false)' },
+		ltc_chase_active: { name: 'Chase to Timecode: armed and counting to next cue (true/false)' },
+		dsan_rx_active: { name: 'DSAN Limitimer: live RX signal (true/false)' },
+		blackmagic_active: { name: 'Blackmagic: output is live (true/false)' },
 	}
 	// v2.0.0 BETA: per-preset variables for use in user-built button
 	// labels. Auto-update from /api/status every poll. Thomas request
@@ -101,6 +112,16 @@ export function updateVariables(instance: InstanceBase<KumaTypes>, data: KumaApi
 		qlab_health: (data.qlab_health ?? 'off').toUpperCase(),
 		qlab_hold: String(data.qlab_hold ?? false),
 		qlab_triggers_enabled: String(data.qlab_triggers_enabled ?? false),
+		// Host field names differ from the variable ids for the LTC Generator
+		// (ltc_tx_* on the wire) — the ids match the feedbacks, see feedbacks.ts.
+		omt_enabled: String(data.omt_enabled ?? false),
+		omt_active: String(data.omt_active ?? false),
+		ltc_generator_enabled: String(data.ltc_tx_enabled ?? false),
+		ltc_generator_active: String(data.ltc_tx_active ?? false),
+		ltc_chase_enabled: String(data.ltc_chase_enabled ?? false),
+		ltc_chase_active: String(data.ltc_chase_active ?? false),
+		dsan_rx_active: String(data.dsan_rx_active ?? false),
+		blackmagic_active: String(data.blackmagic_active ?? false),
 	}
 	// Preset variables — read from `preset_seconds` (v1.12.0+) when
 	// present, otherwise derive from the legacy `presets` minutes
@@ -165,6 +186,14 @@ export function clearVariables(instance: InstanceBase<KumaTypes>): void {
 		qlab_health: 'OFF',
 		qlab_hold: 'false',
 		qlab_triggers_enabled: 'false',
+		omt_enabled: 'false',
+		omt_active: 'false',
+		ltc_generator_enabled: 'false',
+		ltc_generator_active: 'false',
+		ltc_chase_enabled: 'false',
+		ltc_chase_active: 'false',
+		dsan_rx_active: 'false',
+		blackmagic_active: 'false',
 	}
 	for (let i = 1; i <= PRESET_SLOTS; i++) {
 		values[`preset_${i}_minutes`] = ''

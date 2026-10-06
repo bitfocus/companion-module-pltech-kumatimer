@@ -26,6 +26,10 @@ DSAN RX active.
 
 **Live variables:** `timer`, `timer_seconds`, `status`, `cue_name`, `cue_index`, `overtime`, `progress`, `sms_active`, `display_mode`
 
+**State-flag variables** (same ids as the matching feedbacks, `true`/`false`):
+`omt_enabled`, `omt_active`, `ltc_generator_enabled`, `ltc_generator_active`,
+`ltc_chase_enabled`, `ltc_chase_active`, `dsan_rx_active`, `blackmagic_active`
+
 ## Requirements
 
 - [KUMA Timer](https://kuma.pl-tech.co.uk) v1.6.0 or later running on the same network

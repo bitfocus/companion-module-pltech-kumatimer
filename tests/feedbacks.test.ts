@@ -5,6 +5,7 @@ vi.mock('@companion-module/base', () => ({
 }))
 
 import { setupFeedbacks } from '../src/feedbacks.js'
+import { setupVariables, updateVariables } from '../src/variables.js'
 import type { KumaApiStatus } from '../src/types.js'
 
 // Helper: extract typed callback from a feedback definition
@@ -210,5 +211,48 @@ describe('setupFeedbacks', () => {
 		expect(cb(f, 'is_live')()).toBe(false)
 		currentStatus = { status: 'live' }
 		expect(cb(f, 'is_live')()).toBe(true)
+	})
+})
+
+// v2.5.0 — the feedback-only state flags are also exposed as variables, under
+// the SAME id and driven by the SAME /api/status field as their feedback, so a
+// button and an external dashboard can never disagree about a state.
+describe('state flags: feedback and variable stay in lock-step (v2.5.0)', () => {
+	const FLAGS: Array<[string, keyof KumaApiStatus]> = [
+		['omt_enabled', 'omt_enabled'],
+		['omt_active', 'omt_active'],
+		['ltc_generator_enabled', 'ltc_tx_enabled'],
+		['ltc_generator_active', 'ltc_tx_active'],
+		['ltc_chase_enabled', 'ltc_chase_enabled'],
+		['ltc_chase_active', 'ltc_chase_active'],
+		['dsan_rx_active', 'dsan_rx_active'],
+		['blackmagic_active', 'blackmagic_active'],
+	]
+	function varValues(data: KumaApiStatus): Record<string, string> {
+		const setVariableValues = vi.fn()
+		updateVariables({ setVariableValues } as unknown as Parameters<typeof updateVariables>[0], data)
+		return setVariableValues.mock.calls[0][0] as Record<string, string>
+	}
+	function varIds(): string[] {
+		const setVariableDefinitions = vi.fn()
+		const setVariableValues = vi.fn()
+		setupVariables({ setVariableDefinitions, setVariableValues } as unknown as Parameters<typeof setupVariables>[0])
+		return Object.keys(setVariableDefinitions.mock.calls[0][0] as Record<string, unknown>)
+	}
+
+	it.each(FLAGS)('%s exists as both a feedback and a variable', (id) => {
+		expect(Object.keys(setupFeedbacks(() => ({})))).toContain(id)
+		expect(varIds()).toContain(id)
+	})
+
+	it.each(FLAGS)('%s: variable and feedback agree for true / false / missing', (id, field) => {
+		for (const value of [true, false, undefined]) {
+			const data = { [field]: value } as KumaApiStatus
+			const feedback = cb(
+				setupFeedbacks(() => data),
+				id,
+			)()
+			expect(varValues(data)[id]).toBe(String(feedback))
+		}
 	})
 })

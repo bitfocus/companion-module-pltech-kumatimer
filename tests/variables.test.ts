@@ -40,8 +40,8 @@ describe('setupVariables', () => {
 		expect(ids).toContain('qlab_following')
 		expect(ids).toContain('qlab_cue')
 		expect(ids).toContain('qlab_hold')
-		// 16 base (9 + 7 qlab) + 18 preset + 48 cue + 13 layout (1 active + 12 names) = 95
-		expect(ids).toHaveLength(95)
+		// 24 base (9 + 7 qlab + 8 state flags) + 18 preset + 48 cue + 13 layout (1 active + 12 names) = 103
+		expect(ids).toHaveLength(103)
 	})
 
 	it('calls clearVariables (setVariableValues) immediately', () => {
@@ -187,5 +187,67 @@ describe('clearVariables', () => {
 
 	it('sets sms_active to "false"', () => {
 		expect(callClear().sms_active).toBe('false')
+	})
+})
+
+// v2.5.0 — feedback-only state flags exposed as variables, under the SAME ids
+// as their feedbacks (feedbacks.ts). [variable id, field on /api/status]. The
+// LTC Generator is `ltc_tx_*` on the wire but `ltc_generator_*` everywhere else.
+const STATE_FLAGS: Array<[string, keyof KumaApiStatus]> = [
+	['omt_enabled', 'omt_enabled'],
+	['omt_active', 'omt_active'],
+	['ltc_generator_enabled', 'ltc_tx_enabled'],
+	['ltc_generator_active', 'ltc_tx_active'],
+	['ltc_chase_enabled', 'ltc_chase_enabled'],
+	['ltc_chase_active', 'ltc_chase_active'],
+	['dsan_rx_active', 'dsan_rx_active'],
+	['blackmagic_active', 'blackmagic_active'],
+]
+
+describe('state-flag variables (v2.5.0)', () => {
+	const values = (fn: (i: Parameters<typeof setupVariables>[0]) => void): Record<string, string> => {
+		const instance = makeMockInstance()
+		fn(instance)
+		const mock = (instance as unknown as { setVariableValues: ReturnType<typeof vi.fn> }).setVariableValues
+		return mock.mock.calls[0][0] as Record<string, string>
+	}
+
+	it.each(STATE_FLAGS)('%s is defined as a variable', (id) => {
+		const instance = makeMockInstance()
+		setupVariables(instance)
+		const mock = (instance as unknown as { setVariableDefinitions: ReturnType<typeof vi.fn> }).setVariableDefinitions
+		const defs = mock.mock.calls[0][0] as Record<string, { name: string }>
+		expect(defs[id]).toBeDefined()
+		expect(defs[id].name).toMatch(/\(true\/false\)$/)
+	})
+
+	it.each(STATE_FLAGS)('%s <- %s maps true to "true"', (id, field) => {
+		expect(values((i) => updateVariables(i, { [field]: true } as KumaApiStatus))[id]).toBe('true')
+	})
+
+	it.each(STATE_FLAGS)('%s <- %s maps false to "false"', (id, field) => {
+		expect(values((i) => updateVariables(i, { [field]: false } as KumaApiStatus))[id]).toBe('false')
+	})
+
+	it.each(STATE_FLAGS)('%s defaults to "false" when the host omits the field', (id) => {
+		expect(values((i) => updateVariables(i, {}))[id]).toBe('false')
+	})
+
+	it('does not cross-wire the flags: only the one that is set turns true', () => {
+		for (const [id, field] of STATE_FLAGS) {
+			const v = values((i) => updateVariables(i, { [field]: true } as KumaApiStatus))
+			for (const [otherId] of STATE_FLAGS) {
+				expect(v[otherId]).toBe(otherId === id ? 'true' : 'false')
+			}
+		}
+	})
+
+	it('ignores the pre-rename names (ltc_generator_* is not read from the wire)', () => {
+		const v = values((i) => updateVariables(i, { ltc_generator_enabled: true } as unknown as KumaApiStatus))
+		expect(v.ltc_generator_enabled).toBe('false')
+	})
+
+	it.each(STATE_FLAGS)('clearVariables resets %s to "false"', (id) => {
+		expect(values((i) => clearVariables(i))[id]).toBe('false')
 	})
 })
