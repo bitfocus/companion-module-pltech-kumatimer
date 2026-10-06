@@ -282,3 +282,36 @@ describe('setupPresets', () => {
 		})
 	})
 })
+
+// v2.5.0 — the timer split into single-value buttons, in the Info section.
+describe('timer part presets (v2.5.0)', () => {
+	const p = setupPresets()
+	const PARTS: Array<[string, string]> = [
+		['timer_hh', 'timer_hh'],
+		['timer_mm', 'timer_mm'],
+		['timer_ss', 'timer_ss'],
+		['timer_ff', 'timer_ff'],
+		['timer_full', 'timer_full'],
+	]
+
+	it.each(PARTS)('%s shows $(pltech-kumatimer:%s)', (id, variable) => {
+		expect(btn(p, id).style.text).toBe(`$(pltech-kumatimer:${variable})`)
+	})
+
+	it.each(PARTS)('%s is listed in the Info section', (id) => {
+		expect(sectionDefs(p, 'info')).toContain(id)
+	})
+
+	it.each(PARTS)('%s has the same four state colours as the Timer display', (id) => {
+		const fbs = btn(p, id).feedbacks.map((f) => f.feedbackId)
+		expect(fbs).toEqual(['is_live', 'is_paused', 'is_overtime', 'is_hidden'])
+	})
+
+	it.each(PARTS)('%s is display-only (does not send any action)', (id) => {
+		expect(btn(p, id).steps).toEqual([])
+	})
+
+	it('leaves the original Timer display alone', () => {
+		expect(btn(p, 'timer_display').style.text).toBe('$(pltech-kumatimer:timer)')
+	})
+})

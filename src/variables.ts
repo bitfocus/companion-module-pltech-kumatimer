@@ -32,11 +32,59 @@ function formatPresetLabel(totalSeconds: number): string {
 	return formatHMS(s)
 }
 
+/** Split the host's timer text into HH / MM / SS / FF.
+ *
+ * `timer` is plain (MM:SS or HH:MM:SS); `_timer_display` is the SAME text with
+ * a frame segment appended in the frame-accurate (:FR) clock formats, and is
+ * already HH:MM:SS:FF in LTC mode. A three-part display string is therefore
+ * ambiguous on its own (HH:MM:SS or MM:SS:FF) — comparing the segment count
+ * with the plain `timer` tells them apart. Anything unparseable gives '--' for
+ * every part rather than guessing. FF is '--' when no frames are being shown. */
+export function splitTimer(data: KumaApiStatus): { hh: string; mm: string; ss: string; ff: string; full: string } {
+	const none = { hh: '--', mm: '--', ss: '--', ff: '--', full: '--:--' }
+	const plain = data.timer ?? ''
+	const shown = data._timer_display || plain
+	if (!shown) return none
+	const parts = shown.split(':')
+	const plainParts = plain ? plain.split(':').length : parts.length
+	if (parts.some((p) => !/^\d+$/.test(p))) return { ...none, full: shown }
+	const pad = (v: string): string => v.padStart(2, '0')
+	let hh = '00'
+	let mm: string
+	let ss: string
+	let ff = '--'
+	switch (parts.length) {
+		case 2:
+			;[mm, ss] = parts
+			break
+		case 3:
+			if (plainParts === 2) {
+				// MM:SS:FF — the host appended frames to a two-part timer
+				;[mm, ss, ff] = parts
+			} else {
+				;[hh, mm, ss] = parts
+			}
+			break
+		case 4:
+			;[hh, mm, ss, ff] = parts
+			break
+		default:
+			return { ...none, full: shown }
+	}
+	return { hh: pad(hh), mm: pad(mm), ss: pad(ss), ff: ff === '--' ? ff : pad(ff), full: shown }
+}
+
 export function setupVariables(instance: InstanceBase<KumaTypes>): void {
 	const definitions: CompanionVariableDefinitions = {
 		// Live state
 		timer: { name: 'Timer string (MM:SS)' },
 		timer_seconds: { name: 'Timer value in seconds' },
+		// v2.5.0: the timer split into parts, for big single-value buttons.
+		timer_hh: { name: 'Timer: hours (00 when the timer has no hours part)' },
+		timer_mm: { name: 'Timer: minutes' },
+		timer_ss: { name: 'Timer: seconds' },
+		timer_ff: { name: 'Timer: frames (-- unless a frame-accurate format or LTC is shown)' },
+		timer_full: { name: 'Timer: whole display text incl. frames when shown (e.g. 05:23:12)' },
 		status: { name: 'Status (LIVE/PAUSED/STANDBY/HIDDEN)' },
 		display_mode: { name: 'Display mode (TIMER/CLOCK)' },
 		cue_name: { name: 'Current cue name' },
@@ -95,9 +143,15 @@ export function setupVariables(instance: InstanceBase<KumaTypes>): void {
 }
 
 export function updateVariables(instance: InstanceBase<KumaTypes>, data: KumaApiStatus): void {
+	const t = splitTimer(data)
 	const values: CompanionVariableValues = {
 		timer: data.timer ?? '--:--',
 		timer_seconds: String(data.timer_seconds ?? 0),
+		timer_hh: t.hh,
+		timer_mm: t.mm,
+		timer_ss: t.ss,
+		timer_ff: t.ff,
+		timer_full: t.full,
 		status: (data.status ?? 'standby').toUpperCase(),
 		display_mode: (data.display_mode ?? 'TIMER').toUpperCase(),
 		cue_name: data.cue_name || '—',
@@ -172,6 +226,11 @@ export function clearVariables(instance: InstanceBase<KumaTypes>): void {
 	const values: CompanionVariableValues = {
 		timer: '--:--',
 		timer_seconds: '0',
+		timer_hh: '--',
+		timer_mm: '--',
+		timer_ss: '--',
+		timer_ff: '--',
+		timer_full: '--:--',
 		status: 'OFFLINE',
 		display_mode: 'TIMER',
 		cue_name: '—',

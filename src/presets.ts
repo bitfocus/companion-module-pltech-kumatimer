@@ -279,6 +279,33 @@ export function setupPresets(cues: string[] = [], presetValues: number[] = []): 
 	}
 	infoIds.push('timer_display')
 
+	// v2.5.0: the timer split into big single-value buttons (HH / MM / SS / FF)
+	// plus the whole display text (incl. frames when shown) on one button. Same
+	// state colouring as "Timer display" so a row of them reads as one clock.
+	const timerPartFeedbacks = () => [
+		{ feedbackId: 'is_live', options: {}, style: { color: WHITE, bgcolor: GREEN } },
+		{ feedbackId: 'is_paused', options: {}, style: { color: BLACK, bgcolor: ORANGE } },
+		{ feedbackId: 'is_overtime', options: {}, style: { color: WHITE, bgcolor: RED } },
+		{ feedbackId: 'is_hidden', options: {}, style: { color: GREY, bgcolor: BLACK } },
+	]
+	const timerParts: Array<[string, string, string, '24' | '44']> = [
+		['timer_hh', 'Timer: HH', 'timer_hh', '44'],
+		['timer_mm', 'Timer: MM', 'timer_mm', '44'],
+		['timer_ss', 'Timer: SS', 'timer_ss', '44'],
+		['timer_ff', 'Timer: FF (frames)', 'timer_ff', '44'],
+		['timer_full', 'Timer: whole display on one button', 'timer_full', '24'],
+	]
+	for (const [id, name, variable, size] of timerParts) {
+		presets[id] = {
+			type: 'simple',
+			name,
+			style: { text: `$(pltech-kumatimer:${variable})`, size, color: WHITE, bgcolor: combineRgb(40, 40, 40) },
+			steps: [],
+			feedbacks: timerPartFeedbacks(),
+		}
+		infoIds.push(id)
+	}
+
 	// Status display
 	presets['status_display'] = {
 		type: 'simple',

@@ -23,6 +23,10 @@ export interface KumaTypes extends InstanceTypes {
 export interface KumaApiStatus {
 	status?: 'live' | 'paused' | 'standby' | 'hidden' | 'countup'
 	timer?: string
+	/** Frame-aware display string the host renders (adds the frame segment in
+	 * the :FR clock formats, or HH:MM:SS:FF in LTC mode). Underscore = host-
+	 * internal, but /api/status returns the whole snapshot. */
+	_timer_display?: string
 	timer_seconds?: number
 	overtime?: boolean
 	progress?: number

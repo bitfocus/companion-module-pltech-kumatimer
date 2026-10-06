@@ -2,7 +2,7 @@ import { describe, it, expect, vi } from 'vitest'
 
 vi.mock('@companion-module/base', () => ({}))
 
-import { setupVariables, updateVariables, clearVariables } from '../src/variables.js'
+import { setupVariables, updateVariables, clearVariables, splitTimer } from '../src/variables.js'
 import type { KumaApiStatus } from '../src/types.js'
 
 /** Minimal mock of InstanceBase — only the methods we care about. */
@@ -40,8 +40,8 @@ describe('setupVariables', () => {
 		expect(ids).toContain('qlab_following')
 		expect(ids).toContain('qlab_cue')
 		expect(ids).toContain('qlab_hold')
-		// 24 base (9 + 7 qlab + 8 state flags) + 18 preset + 48 cue + 13 layout (1 active + 12 names) = 103
-		expect(ids).toHaveLength(103)
+		// 29 base (9 + 7 qlab + 8 state flags + 5 timer parts) + 18 preset + 48 cue + 13 layout (1 active + 12 names) = 108
+		expect(ids).toHaveLength(108)
 	})
 
 	it('calls clearVariables (setVariableValues) immediately', () => {
@@ -249,5 +249,93 @@ describe('state-flag variables (v2.5.0)', () => {
 
 	it.each(STATE_FLAGS)('clearVariables resets %s to "false"', (id) => {
 		expect(values((i) => clearVariables(i))[id]).toBe('false')
+	})
+})
+
+// v2.5.0 — timer split into HH / MM / SS / FF / whole-display variables.
+describe('timer parts (v2.5.0)', () => {
+	const parts = (data: KumaApiStatus) => {
+		const t = splitTimer(data)
+		return [t.hh, t.mm, t.ss, t.ff, t.full]
+	}
+
+	it('MM:SS format: no hours part, no frames', () => {
+		expect(parts({ timer: '05:23', _timer_display: '05:23' })).toEqual(['00', '05', '23', '--', '05:23'])
+	})
+
+	it('HH:MM:SS format', () => {
+		expect(parts({ timer: '01:05:23', _timer_display: '01:05:23' })).toEqual(['01', '05', '23', '--', '01:05:23'])
+	})
+
+	it('MM:SS:FR — a 3-part display over a 2-part timer means the last part is frames', () => {
+		expect(parts({ timer: '05:23', _timer_display: '05:23:12' })).toEqual(['00', '05', '23', '12', '05:23:12'])
+	})
+
+	it('HH:MM:SS:FR', () => {
+		expect(parts({ timer: '01:05:23', _timer_display: '01:05:23:12' })).toEqual(['01', '05', '23', '12', '01:05:23:12'])
+	})
+
+	it('LTC mode: timecode is already HH:MM:SS:FF', () => {
+		expect(parts({ timer: '10:00:00:24', _timer_display: '10:00:00:24' })).toEqual([
+			'10',
+			'00',
+			'00',
+			'24',
+			'10:00:00:24',
+		])
+	})
+
+	it('older host without _timer_display: falls back to timer', () => {
+		expect(parts({ timer: '07:08' })).toEqual(['00', '07', '08', '--', '07:08'])
+		expect(parts({ timer: '02:07:08' })).toEqual(['02', '07', '08', '--', '02:07:08'])
+	})
+
+	it('minutes may exceed 59 in MM:SS and are kept as-is', () => {
+		expect(parts({ timer: '75:00', _timer_display: '75:00' })).toEqual(['00', '75', '00', '--', '75:00'])
+	})
+
+	it('pads single digits', () => {
+		expect(parts({ timer: '5:3', _timer_display: '5:3' })).toEqual(['00', '05', '03', '--', '5:3'])
+	})
+
+	it('nothing from the host: dashes, not zeros', () => {
+		expect(parts({})).toEqual(['--', '--', '--', '--', '--:--'])
+	})
+
+	it.each(['--:--', 'abc', '1:2:3:4:5', '12:xx'])('unparseable %j gives dashes but keeps the text', (txt) => {
+		const t = splitTimer({ timer: txt, _timer_display: txt })
+		expect([t.hh, t.mm, t.ss, t.ff]).toEqual(['--', '--', '--', '--'])
+		expect(t.full).toBe(txt)
+	})
+
+	it('updateVariables publishes the five variables, clearVariables resets them', () => {
+		const set = vi.fn()
+		const inst = { setVariableValues: set } as unknown as Parameters<typeof updateVariables>[0]
+		updateVariables(inst, { timer: '05:23', _timer_display: '05:23:12' })
+		expect(set.mock.calls[0][0]).toMatchObject({
+			timer: '05:23',
+			timer_hh: '00',
+			timer_mm: '05',
+			timer_ss: '23',
+			timer_ff: '12',
+			timer_full: '05:23:12',
+		})
+		clearVariables(inst)
+		expect(set.mock.calls[1][0]).toMatchObject({
+			timer_hh: '--',
+			timer_mm: '--',
+			timer_ss: '--',
+			timer_ff: '--',
+			timer_full: '--:--',
+		})
+	})
+
+	it('the existing `timer` variable is unchanged (still the plain text, no frames)', () => {
+		const set = vi.fn()
+		updateVariables({ setVariableValues: set } as unknown as Parameters<typeof updateVariables>[0], {
+			timer: '05:23',
+			_timer_display: '05:23:12',
+		})
+		expect(set.mock.calls[0][0].timer).toBe('05:23')
 	})
 })
