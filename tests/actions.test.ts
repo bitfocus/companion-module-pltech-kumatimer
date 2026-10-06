@@ -17,7 +17,7 @@ function getCallbackAndMock(id: string): {
 }
 
 describe('setupActions', () => {
-	it('exposes all 28 actions', () => {
+	it('exposes all 32 actions', () => {
 		const { sendCommand } = getCallbackAndMock('start')
 		const actions = setupActions(sendCommand)
 		const ids = Object.keys(actions)
@@ -50,8 +50,12 @@ describe('setupActions', () => {
 			'ltc_generator_enable',
 			'ltc_chase_enable',
 			'blackmagic_enable',
+			'warp_time',
+			'warp_duration',
+			'cancel_warp',
+			'cancel_jump',
 		]
-		expect(ids).toHaveLength(28)
+		expect(ids).toHaveLength(32)
 		for (const id of expected) expect(ids).toContain(id)
 	})
 
@@ -291,5 +295,40 @@ describe('setupActions', () => {
 			expect(call[1].flash).toBe(true)
 			expect(call[1].scroll).toBe(false)
 		})
+	})
+})
+
+// v2.5.0 — Time Glide / Time Jump control (host: warp_time, warp_duration,
+// cancel_warp, cancel_jump).
+describe('Time Glide / Time Jump actions (v2.5.0)', () => {
+	it('warp_time sends the wall-clock target as hours/minutes/seconds numbers', async () => {
+		const { callback, sendCommand } = getCallbackAndMock('warp_time')
+		await callback({ options: { hours: '18', minutes: 30, seconds: 15 } })
+		expect(sendCommand).toHaveBeenCalledWith('warp_time', { hours: 18, minutes: 30, seconds: 15 })
+	})
+
+	it('warp_duration sends the duration as hours/minutes/seconds numbers', async () => {
+		const { callback, sendCommand } = getCallbackAndMock('warp_duration')
+		await callback({ options: { hours: 0, minutes: 5, seconds: 0 } })
+		expect(sendCommand).toHaveBeenCalledWith('warp_duration', { hours: 0, minutes: 5, seconds: 0 })
+	})
+
+	it.each([
+		['cancel_warp', 'cancel_warp'],
+		['cancel_jump', 'cancel_jump'],
+	])('%s sends %s with no parameters', async (id, command) => {
+		const { callback, sendCommand } = getCallbackAndMock(id)
+		await callback()
+		expect(sendCommand).toHaveBeenCalledWith(command)
+	})
+
+	it('warp_time options stay inside what the host accepts (0-23 / 0-59 / 0-59)', () => {
+		const actions = setupActions(vi.fn())
+		const opts = (actions['warp_time'] as unknown as { options: { id: string; min: number; max: number }[] }).options
+		expect(opts.map((o) => [o.id, o.min, o.max])).toEqual([
+			['hours', 0, 23],
+			['minutes', 0, 59],
+			['seconds', 0, 59],
+		])
 	})
 })

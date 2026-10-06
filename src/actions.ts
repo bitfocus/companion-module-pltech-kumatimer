@@ -287,9 +287,56 @@ export function setupActions(
 			callback: async () => sendCommand('count_up'),
 		},
 
+		// ─── Time Glide / Time Jump ───────────────────────────────────
+		// Host: warp_time / warp_duration start a Time Glide (the timer is
+		// stretched or squeezed so it ends exactly on target); cancel_warp /
+		// cancel_jump stop one. All four are no-ops the host answers with 400
+		// when the input makes no sense (e.g. a zero duration) — see sendCommand.
+		warp_time: {
+			name: 'Time Glide: finish at wall-clock time (HH:MM:SS)',
+			options: [
+				{ type: 'number', id: 'hours', label: 'Hour (0-23)', default: 18, min: 0, max: 23 },
+				{ type: 'number', id: 'minutes', label: 'Minute', default: 0, min: 0, max: 59 },
+				{ type: 'number', id: 'seconds', label: 'Second', default: 0, min: 0, max: 59 },
+			],
+			callback: async (action: { options: Record<string, unknown> }) =>
+				sendCommand('warp_time', {
+					hours: Number(action.options['hours']),
+					minutes: Number(action.options['minutes']),
+					seconds: Number(action.options['seconds']),
+				}),
+		},
+
+		warp_duration: {
+			name: 'Time Glide: finish in a set duration',
+			options: [
+				{ type: 'number', id: 'hours', label: 'Hours', default: 0, min: 0, max: 23 },
+				{ type: 'number', id: 'minutes', label: 'Minutes', default: 5, min: 0, max: 59 },
+				{ type: 'number', id: 'seconds', label: 'Seconds', default: 0, min: 0, max: 59 },
+			],
+			callback: async (action: { options: Record<string, unknown> }) =>
+				sendCommand('warp_duration', {
+					hours: Number(action.options['hours']),
+					minutes: Number(action.options['minutes']),
+					seconds: Number(action.options['seconds']),
+				}),
+		},
+
+		cancel_warp: {
+			name: 'Time Glide: cancel',
+			options: [],
+			callback: async () => sendCommand('cancel_warp'),
+		},
+
+		cancel_jump: {
+			name: 'Time Jump: cancel',
+			options: [],
+			callback: async () => sendCommand('cancel_jump'),
+		},
+
 		// ─── QLab follow (Direction 3) ────────────────────────────────
 		qlab_hold: {
-			name: 'QLab: TCR Visible / Hidden (audition hold)',
+			name: 'TCR: Visible / Hidden (audition hold) — QLab / Mitti / Millumin / KumaPoint',
 			options: [onOffToggle],
 			callback: async (action: { options: Record<string, unknown> }) => {
 				// 'on' = hold = TCR HIDDEN. Toggle reads current hold state.

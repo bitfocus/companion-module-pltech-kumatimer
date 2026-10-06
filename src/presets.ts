@@ -137,7 +137,13 @@ export function setupPresets(cues: string[] = [], presetValues: number[] = []): 
 		name: 'Switch to Timer mode',
 		style: { text: 'TIMER\nMODE', size: '14', color: WHITE, bgcolor: combineRgb(50, 50, 80) },
 		steps: [{ down: [{ actionId: 'set_mode', options: { mode: 'TIMER' } }], up: [] }],
-		feedbacks: [],
+		feedbacks: [
+			{
+				feedbackId: 'display_mode_is',
+				options: { mode: 'TIMER' },
+				style: { color: WHITE, bgcolor: combineRgb(0, 110, 70) },
+			},
+		],
 	}
 	transportIds.push('mode_timer')
 
@@ -146,9 +152,34 @@ export function setupPresets(cues: string[] = [], presetValues: number[] = []): 
 		name: 'Switch to Clock mode',
 		style: { text: 'CLOCK\nMODE', size: '14', color: WHITE, bgcolor: combineRgb(50, 50, 80) },
 		steps: [{ down: [{ actionId: 'set_mode', options: { mode: 'CLOCK' } }], up: [] }],
-		feedbacks: [],
+		feedbacks: [
+			{
+				feedbackId: 'display_mode_is',
+				options: { mode: 'CLOCK' },
+				style: { color: WHITE, bgcolor: combineRgb(0, 110, 70) },
+			},
+		],
 	}
 	transportIds.push('mode_clock')
+
+	// Time Glide / Time Jump cancel — dark until one is running, then orange.
+	presets['cancel_glide'] = {
+		type: 'simple',
+		name: 'Cancel Time Glide',
+		style: { text: 'CANCEL\nGLIDE', size: '14', color: GREY, bgcolor: BLACK },
+		steps: [{ down: [{ actionId: 'cancel_warp', options: {} }], up: [] }],
+		feedbacks: [{ feedbackId: 'time_glide_active', options: {}, style: { color: WHITE, bgcolor: ORANGE } }],
+	}
+	transportIds.push('cancel_glide')
+
+	presets['cancel_jump'] = {
+		type: 'simple',
+		name: 'Cancel Time Jump',
+		style: { text: 'CANCEL\nJUMP', size: '14', color: GREY, bgcolor: BLACK },
+		steps: [{ down: [{ actionId: 'cancel_jump', options: {} }], up: [] }],
+		feedbacks: [{ feedbackId: 'time_jump_active', options: {}, style: { color: WHITE, bgcolor: ORANGE } }],
+	}
+	transportIds.push('cancel_jump')
 
 	// COUNT UP
 	presets['count_up'] = {
@@ -373,7 +404,7 @@ export function setupPresets(cues: string[] = [], presetValues: number[] = []): 
 	// the qlab_hold feedback paints it amber "TCR HIDDEN".
 	presets['qlab_hold'] = {
 		type: 'simple',
-		name: 'QLab: TCR Visible / Hidden (hold)',
+		name: 'TCR: Visible / Hidden (hold) — any source',
 		style: { text: 'TCR\nVISIBLE', size: '14', color: WHITE, bgcolor: combineRgb(30, 110, 70) },
 		steps: [{ down: [{ actionId: 'qlab_hold', options: { mode: 'toggle' } }], up: [] }],
 		feedbacks: [{ feedbackId: 'qlab_hold', options: {}, style: { text: 'TCR\nHIDDEN', color: BLACK, bgcolor: AMBER } }],
@@ -418,11 +449,30 @@ export function setupPresets(cues: string[] = [], presetValues: number[] = []): 
 	}
 	qlabIds.push('qlab_triggers')
 
+	// Source-neutral TCR readouts: which source is selected, and its value.
+	presets['tcr_source'] = {
+		type: 'simple',
+		name: 'TCR: active source',
+		style: { text: 'TCR\n$(pltech-kumatimer:tcr_source)', size: '14', color: WHITE, bgcolor: BLACK },
+		steps: [],
+		feedbacks: [{ feedbackId: 'tcr_following', options: {}, style: { color: WHITE, bgcolor: combineRgb(0, 150, 90) } }],
+	}
+	qlabIds.push('tcr_source')
+
+	presets['tcr_readout'] = {
+		type: 'simple',
+		name: 'TCR: readout (time remaining of the playing clip)',
+		style: { text: '$(pltech-kumatimer:tcr_line)', size: '24', color: WHITE, bgcolor: BLACK },
+		steps: [],
+		feedbacks: [{ feedbackId: 'tcr_following', options: {}, style: { color: WHITE, bgcolor: combineRgb(0, 150, 90) } }],
+	}
+	qlabIds.push('tcr_readout')
+
 	const structure: CompanionPresetSection[] = [
 		{ id: 'transport', name: 'Transport', definitions: transportIds },
 		{ id: 'presets', name: 'Presets', definitions: presetIds },
 		{ id: 'cues', name: 'Cues', definitions: cueIds },
-		{ id: 'qlab', name: 'QLab', definitions: qlabIds },
+		{ id: 'qlab', name: 'TCR / QLab', definitions: qlabIds },
 		{ id: 'info', name: 'Info', definitions: infoIds },
 		{ id: 'sms', name: 'SMS', definitions: smsIds },
 	]

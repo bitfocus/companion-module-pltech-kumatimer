@@ -177,7 +177,7 @@ describe('setupFeedbacks', () => {
 		}
 	})
 
-	it('exposes all 21 feedbacks', () => {
+	it('exposes all 28 feedbacks', () => {
 		const f = setupFeedbacks(() => ({}))
 		const ids = Object.keys(f)
 		expect(ids).toContain('is_live')
@@ -202,7 +202,16 @@ describe('setupFeedbacks', () => {
 		expect(ids).toContain('ltc_chase_active')
 		expect(ids).toContain('dsan_rx_active')
 		expect(ids).toContain('blackmagic_active')
-		expect(ids).toHaveLength(22)
+		for (const id of [
+			'tcr_following',
+			'tcr_source_is',
+			'time_glide_active',
+			'time_jump_active',
+			'display_mode_is',
+			'layout_is_active',
+		])
+			expect(ids).toContain(id)
+		expect(ids).toHaveLength(28)
 	})
 
 	it('uses latest status snapshot on every call', () => {
@@ -227,6 +236,9 @@ describe('state flags: feedback and variable stay in lock-step (v2.5.0)', () => 
 		['ltc_chase_active', 'ltc_chase_active'],
 		['dsan_rx_active', 'dsan_rx_active'],
 		['blackmagic_active', 'blackmagic_active'],
+		['tcr_following', 'tcr_following'],
+		['time_glide_active', 'warp_active'],
+		['time_jump_active', 'jump_active'],
 	]
 	function varValues(data: KumaApiStatus): Record<string, string> {
 		const setVariableValues = vi.fn()
@@ -254,5 +266,96 @@ describe('state flags: feedback and variable stay in lock-step (v2.5.0)', () => 
 			)()
 			expect(varValues(data)[id]).toBe(String(feedback))
 		}
+	})
+})
+
+// v2.5.0 — source-neutral TCR, Time Glide / Jump, display mode, layout.
+describe('TCR / Glide / Jump / mode / layout feedbacks (v2.5.0)', () => {
+	const fb = (id: string, status: KumaApiStatus, options: Record<string, unknown> = {}) =>
+		cb(
+			setupFeedbacks(() => status),
+			id,
+		)({ options })
+
+	describe('tcr_following', () => {
+		it('is true when the host says a source is driving the timer (KumaPoint included)', () => {
+			expect(fb('tcr_following', { tcr_following: true, tcr_source: 'kumapoint' })).toBe(true)
+		})
+		it('is false when nothing is following', () => {
+			expect(fb('tcr_following', { tcr_following: false })).toBe(false)
+		})
+		it('falls back to the legacy flag on an older host', () => {
+			expect(fb('tcr_following', { qlab_following: true })).toBe(true)
+		})
+		it('prefers the new field over the legacy one', () => {
+			expect(fb('tcr_following', { tcr_following: false, qlab_following: true })).toBe(false)
+		})
+	})
+
+	describe('tcr_source_is', () => {
+		it.each(['qlab', 'mitti', 'millumin', 'kumapoint', 'off'])('matches %s', (src) => {
+			expect(fb('tcr_source_is', { tcr_source: src }, { source: src })).toBe(true)
+		})
+		it('does not match a different source', () => {
+			expect(fb('tcr_source_is', { tcr_source: 'qlab' }, { source: 'kumapoint' })).toBe(false)
+		})
+		it('treats a missing field as off', () => {
+			expect(fb('tcr_source_is', {}, { source: 'off' })).toBe(true)
+			expect(fb('tcr_source_is', {}, { source: 'qlab' })).toBe(false)
+		})
+		it('is case-insensitive about the host value', () => {
+			expect(fb('tcr_source_is', { tcr_source: 'KumaPoint' }, { source: 'kumapoint' })).toBe(true)
+		})
+	})
+
+	it('time_glide_active follows warp_active', () => {
+		expect(fb('time_glide_active', { warp_active: true })).toBe(true)
+		expect(fb('time_glide_active', { warp_active: false })).toBe(false)
+		expect(fb('time_glide_active', {})).toBe(false)
+	})
+
+	it('time_jump_active follows jump_active', () => {
+		expect(fb('time_jump_active', { jump_active: true })).toBe(true)
+		expect(fb('time_jump_active', {})).toBe(false)
+	})
+
+	describe('display_mode_is', () => {
+		it('matches the current mode', () => {
+			expect(fb('display_mode_is', { display_mode: 'CLOCK' }, { mode: 'CLOCK' })).toBe(true)
+			expect(fb('display_mode_is', { display_mode: 'CLOCK' }, { mode: 'TIMER' })).toBe(false)
+		})
+		it('treats a missing mode as TIMER and ignores case', () => {
+			expect(fb('display_mode_is', {}, { mode: 'TIMER' })).toBe(true)
+			expect(fb('display_mode_is', { display_mode: 'clock' }, { mode: 'CLOCK' })).toBe(true)
+		})
+	})
+
+	describe('layout_is_active', () => {
+		const status: KumaApiStatus = {
+			layout_presets: [
+				{ slot: 1, id: 'a1', name: 'Stage' },
+				{ slot: 2, id: 'b2', name: 'Lower Third' },
+			],
+			layout_preset_active: 'b2',
+		}
+		it('matches by slot', () => {
+			expect(fb('layout_is_active', status, { mode: 'slot', slot: 2 })).toBe(true)
+			expect(fb('layout_is_active', status, { mode: 'slot', slot: 1 })).toBe(false)
+		})
+		it('matches by name, ignoring case and surrounding spaces', () => {
+			expect(fb('layout_is_active', status, { mode: 'name', name: '  lower third ' })).toBe(true)
+			expect(fb('layout_is_active', status, { mode: 'name', name: 'Stage' })).toBe(false)
+		})
+		it('is false when no layout is active, the slot does not exist, or the name is unknown', () => {
+			expect(fb('layout_is_active', { ...status, layout_preset_active: '' }, { mode: 'slot', slot: 2 })).toBe(false)
+			expect(fb('layout_is_active', status, { mode: 'slot', slot: 9 })).toBe(false)
+			expect(fb('layout_is_active', status, { mode: 'name', name: 'nope' })).toBe(false)
+			expect(fb('layout_is_active', {}, { mode: 'slot', slot: 1 })).toBe(false)
+		})
+	})
+
+	it('legacy qlab_following / qlab_hold feedbacks keep their ids and behaviour', () => {
+		expect(fb('qlab_following', { qlab_following: true })).toBe(true)
+		expect(fb('qlab_hold', { qlab_hold: true })).toBe(true)
 	})
 })

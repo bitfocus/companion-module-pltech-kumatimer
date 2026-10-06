@@ -315,3 +315,39 @@ describe('timer part presets (v2.5.0)', () => {
 		expect(btn(p, 'timer_display').style.text).toBe('$(pltech-kumatimer:timer)')
 	})
 })
+
+// v2.5.0 — mode highlight, Glide/Jump cancel and TCR readouts.
+describe('mode / Glide / Jump / TCR presets (v2.5.0)', () => {
+	const p = setupPresets()
+
+	it.each([
+		['mode_timer', 'TIMER'],
+		['mode_clock', 'CLOCK'],
+	])('%s lights up when the display mode is %s', (id, mode) => {
+		const fb = btn(p, id).feedbacks.find((f) => f.feedbackId === 'display_mode_is')
+		expect(fb).toBeDefined()
+		expect(fb?.options).toEqual({ mode })
+	})
+
+	it.each([
+		['cancel_glide', 'cancel_warp', 'time_glide_active'],
+		['cancel_jump', 'cancel_jump', 'time_jump_active'],
+	])('%s sends %s and lights up via %s', (id, action, feedback) => {
+		expect(btn(p, id).steps[0].down[0].actionId).toBe(action)
+		expect(btn(p, id).feedbacks.map((f) => f.feedbackId)).toEqual([feedback])
+		expect(sectionDefs(p, 'transport')).toContain(id)
+	})
+
+	it('tcr_source and tcr_readout show their variables and light up while following', () => {
+		expect(btn(p, 'tcr_source').style.text).toContain('$(pltech-kumatimer:tcr_source)')
+		expect(btn(p, 'tcr_readout').style.text).toBe('$(pltech-kumatimer:tcr_line)')
+		for (const id of ['tcr_source', 'tcr_readout']) {
+			expect(btn(p, id).feedbacks.map((f) => f.feedbackId)).toEqual(['tcr_following'])
+			expect(sectionDefs(p, 'qlab')).toContain(id)
+		}
+	})
+
+	it('keeps the section ids (saved layouts depend on them)', () => {
+		expect(p.structure.map((s) => s.id)).toEqual(['transport', 'presets', 'cues', 'qlab', 'info', 'sms'])
+	})
+})

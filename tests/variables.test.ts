@@ -40,8 +40,8 @@ describe('setupVariables', () => {
 		expect(ids).toContain('qlab_following')
 		expect(ids).toContain('qlab_cue')
 		expect(ids).toContain('qlab_hold')
-		// 32 base (9 + 7 qlab + 8 state flags + 5 timer parts + 3 timecodes) + 18 preset + 48 cue + 13 layout (1 active + 12 names) = 111
-		expect(ids).toHaveLength(111)
+		// 38 base (9 + 7 qlab + 8 state flags + 5 timer parts + 3 timecodes + 6 tcr/glide/jump) + 18 preset + 48 cue + 13 layout (1 active + 12 names) = 117
+		expect(ids).toHaveLength(117)
 	})
 
 	it('calls clearVariables (setVariableValues) immediately', () => {
@@ -378,5 +378,55 @@ describe('timecode variables (v2.5.0)', () => {
 		expect(v.ltc_timecode).toBe('10:00:00:01')
 		expect(v.ltc_generator_timecode).toBe('')
 		expect(v.dsan_rx_timer).toBe('')
+	})
+})
+
+// v2.5.0 — source-neutral TCR + Time Glide / Jump variables.
+describe('TCR / Glide / Jump variables (v2.5.0)', () => {
+	const run = (data: KumaApiStatus): Record<string, string> => {
+		const set = vi.fn()
+		updateVariables({ setVariableValues: set } as unknown as Parameters<typeof updateVariables>[0], data)
+		return set.mock.calls[0][0] as Record<string, string>
+	}
+
+	it('tcr_source is upper-cased and defaults to OFF', () => {
+		expect(run({ tcr_source: 'kumapoint' }).tcr_source).toBe('KUMAPOINT')
+		expect(run({}).tcr_source).toBe('OFF')
+	})
+
+	it('tcr_following uses the new field, falling back to the legacy flag', () => {
+		expect(run({ tcr_following: true }).tcr_following).toBe('true')
+		expect(run({ tcr_following: false, qlab_following: true }).tcr_following).toBe('false')
+		expect(run({ qlab_following: true }).tcr_following).toBe('true')
+		expect(run({}).tcr_following).toBe('false')
+	})
+
+	it('tcr_line and tcr_name pass the host text through, blank when absent', () => {
+		const v = run({ tcr_line: '00:23', tcr_name: 'Opening video' })
+		expect(v.tcr_line).toBe('00:23')
+		expect(v.tcr_name).toBe('Opening video')
+		expect(run({}).tcr_line).toBe('')
+		expect(run({}).tcr_name).toBe('')
+	})
+
+	it('time_glide_active / time_jump_active mirror warp_active / jump_active', () => {
+		expect(run({ warp_active: true, jump_active: false })).toMatchObject({
+			time_glide_active: 'true',
+			time_jump_active: 'false',
+		})
+		expect(run({})).toMatchObject({ time_glide_active: 'false', time_jump_active: 'false' })
+	})
+
+	it('clearVariables resets all of them', () => {
+		const set = vi.fn()
+		clearVariables({ setVariableValues: set } as unknown as Parameters<typeof clearVariables>[0])
+		expect(set.mock.calls[0][0]).toMatchObject({
+			tcr_source: 'OFF',
+			tcr_following: 'false',
+			tcr_line: '',
+			tcr_name: '',
+			time_glide_active: 'false',
+			time_jump_active: 'false',
+		})
 	})
 })

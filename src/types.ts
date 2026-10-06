@@ -53,6 +53,21 @@ export interface KumaApiStatus {
 	qlab_follow_mode?: string // 'active' | 'cue'
 	qlab_health?: string // 'ok' | 'idle' | 'error' | 'off'
 	qlab_hold?: boolean // audition-safe HOLD armed (TCR hidden)
+	// Source-neutral TCR (host v1.17.4+; KumaPoint is a source since v1.18.0).
+	// tcr_source is one of off | qlab | mitti | millumin | kumapoint.
+	tcr_source?: string
+	tcr_following?: boolean // any source is actually driving the timer
+	tcr_line_active?: boolean
+	tcr_line?: string // the TCR readout text, e.g. "00:23"
+	tcr_line_color?: string
+	tcr_name_active?: boolean
+	tcr_name?: string // clip / cue name shown next to it
+	// Time Glide / Time Jump (the "Time Cut" panel)
+	warp_active?: boolean // a Time Glide is running
+	warp_interval_ms?: number
+	jump_active?: boolean // a Time Jump (stealth cut) is running
+	jump_remaining_cut?: number
+	time_cut_mode?: string
 	// Layout presets ("Looks") — lightweight {slot, id, name} list + the active
 	// preset id. Recall via the recall_layout action (by slot or name).
 	layout_presets?: { slot: number; id: string; name: string }[]

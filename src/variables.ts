@@ -94,11 +94,11 @@ export function setupVariables(instance: InstanceBase<KumaTypes>): void {
 		sms_active: { name: 'SMS message active (true/false)' },
 		// QLab follow
 		qlab_follow_enabled: { name: 'QLab follow enabled (true/false)' },
-		qlab_following: { name: 'QLab following a running cue (true/false)' },
+		qlab_following: { name: 'TCR: a follow source (QLab/Mitti/Millumin/KumaPoint) is driving the timer (true/false)' },
 		qlab_cue: { name: 'QLab followed cue (number/id)' },
 		qlab_mode: { name: 'QLab follow mode (active/cue)' },
 		qlab_health: { name: 'QLab follow health (ok/idle/error/off)' },
-		qlab_hold: { name: 'QLab TCR hidden / hold armed (true/false)' },
+		qlab_hold: { name: 'TCR hidden / hold armed (true/false)' },
 		qlab_triggers_enabled: { name: 'QLab triggers enabled (true/false)' },
 		// v2.5.0: state flags that used to exist only as feedbacks. External
 		// dashboards read variables (GET /api/variable/...), not feedbacks, so
@@ -111,6 +111,14 @@ export function setupVariables(instance: InstanceBase<KumaTypes>): void {
 		ltc_chase_active: { name: 'Chase to Timecode: armed and counting to next cue (true/false)' },
 		dsan_rx_active: { name: 'DSAN Limitimer: live RX signal (true/false)' },
 		blackmagic_active: { name: 'Blackmagic: output is live (true/false)' },
+		// Source-neutral TCR (QLab / Mitti / Millumin / KumaPoint) and Time Glide /
+		// Jump. Booleans share their id with the feedback of the same name.
+		tcr_source: { name: 'TCR source: QLAB / MITTI / MILLUMIN / KUMAPOINT / OFF' },
+		tcr_following: { name: 'TCR: a follow source is driving the timer (true/false)' },
+		tcr_line: { name: 'TCR readout text, e.g. 00:23 (empty when none)' },
+		tcr_name: { name: 'TCR clip / cue name (empty when none)' },
+		time_glide_active: { name: 'Time Glide: a glide is running (true/false)' },
+		time_jump_active: { name: 'Time Jump: a jump is running (true/false)' },
 		// Timecode / timer TEXT (empty string = no signal) — host v1.19.3+.
 		ltc_timecode: { name: 'LTC input timecode HH:MM:SS:FF (empty = no signal)' },
 		ltc_generator_timecode: { name: 'LTC Generator timecode HH:MM:SS:FF (empty = not running)' },
@@ -180,6 +188,14 @@ export function updateVariables(instance: InstanceBase<KumaTypes>, data: KumaApi
 		ltc_chase_active: String(data.ltc_chase_active ?? false),
 		dsan_rx_active: String(data.dsan_rx_active ?? false),
 		blackmagic_active: String(data.blackmagic_active ?? false),
+		// Older hosts only know the legacy qlab_following flag, which is already
+		// source-neutral on any host that has the tcr_* fields.
+		tcr_source: (data.tcr_source ?? 'off').toUpperCase(),
+		tcr_following: String(data.tcr_following ?? data.qlab_following ?? false),
+		tcr_line: data.tcr_line ?? '',
+		tcr_name: data.tcr_name ?? '',
+		time_glide_active: String(data.warp_active ?? false),
+		time_jump_active: String(data.jump_active ?? false),
 		ltc_timecode: data.ltc_timecode ?? '',
 		ltc_generator_timecode: data.ltc_generator_timecode ?? '',
 		dsan_rx_timer: data.dsan_rx_timer ?? '',
@@ -260,6 +276,12 @@ export function clearVariables(instance: InstanceBase<KumaTypes>): void {
 		ltc_chase_active: 'false',
 		dsan_rx_active: 'false',
 		blackmagic_active: 'false',
+		tcr_source: 'OFF',
+		tcr_following: 'false',
+		tcr_line: '',
+		tcr_name: '',
+		time_glide_active: 'false',
+		time_jump_active: 'false',
 		ltc_timecode: '',
 		ltc_generator_timecode: '',
 		dsan_rx_timer: '',

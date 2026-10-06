@@ -76,7 +76,9 @@ export function setupFeedbacks(lastStatus: () => KumaApiStatus): CompanionFeedba
 
 		// ─── QLab follow ──────────────────────────────────────────────
 		qlab_following: {
-			name: 'QLab: following a running cue',
+			// Source-neutral on the host (true for QLab, Mitti, Millumin AND KumaPoint);
+			// the id keeps its legacy qlab_ prefix for saved buttons.
+			name: 'TCR: following a running cue/clip (QLab / Mitti / Millumin / KumaPoint)',
 			type: 'boolean',
 			defaultStyle: { bgcolor: combineRgb(0, 150, 90), color: combineRgb(255, 255, 255) },
 			options: [],
@@ -93,7 +95,7 @@ export function setupFeedbacks(lastStatus: () => KumaApiStatus): CompanionFeedba
 			},
 		},
 		qlab_hold: {
-			name: 'QLab: TCR HIDDEN (audition hold armed)',
+			name: 'TCR: HIDDEN (audition hold armed) — any source',
 			type: 'boolean',
 			defaultStyle: { bgcolor: combineRgb(170, 119, 17), color: combineRgb(0, 0, 0) },
 			options: [],
@@ -112,6 +114,123 @@ export function setupFeedbacks(lastStatus: () => KumaApiStatus): CompanionFeedba
 			defaultStyle: { bgcolor: combineRgb(0, 90, 60), color: combineRgb(255, 255, 255) },
 			options: [],
 			callback: () => !!lastStatus().qlab_triggers_enabled,
+		},
+
+		// ─── Source-neutral TCR (QLab / Mitti / Millumin / KumaPoint) ───
+		tcr_following: {
+			name: 'TCR: a follow source is driving the timer',
+			type: 'boolean',
+			defaultStyle: { bgcolor: combineRgb(0, 150, 90), color: combineRgb(255, 255, 255) },
+			options: [],
+			// Older hosts only have the legacy flag (already source-neutral there).
+			callback: () => !!(lastStatus().tcr_following ?? lastStatus().qlab_following),
+		},
+		tcr_source_is: {
+			name: 'TCR: selected source is …',
+			type: 'boolean',
+			defaultStyle: { bgcolor: combineRgb(0, 90, 60), color: combineRgb(255, 255, 255) },
+			options: [
+				{
+					type: 'dropdown',
+					id: 'source',
+					label: 'Source',
+					default: 'kumapoint',
+					choices: [
+						{ id: 'qlab', label: 'QLab' },
+						{ id: 'mitti', label: 'Mitti' },
+						{ id: 'millumin', label: 'Millumin' },
+						{ id: 'kumapoint', label: 'KumaPoint (PowerPoint)' },
+						{ id: 'off', label: 'Off' },
+					],
+				},
+			],
+			callback: (feedback: { options: Record<string, unknown> }) =>
+				String(lastStatus().tcr_source ?? 'off').toLowerCase() === String(feedback.options['source']),
+		},
+
+		// ─── Time Glide / Time Jump / display mode / layout ───
+		time_glide_active: {
+			name: 'Time Glide: a glide is running',
+			type: 'boolean',
+			defaultStyle: { bgcolor: combineRgb(200, 100, 0), color: combineRgb(255, 255, 255) },
+			options: [],
+			callback: () => !!lastStatus().warp_active,
+		},
+		time_jump_active: {
+			name: 'Time Jump: a jump is running',
+			type: 'boolean',
+			defaultStyle: { bgcolor: combineRgb(200, 100, 0), color: combineRgb(255, 255, 255) },
+			options: [],
+			callback: () => !!lastStatus().jump_active,
+		},
+		display_mode_is: {
+			name: 'Display mode is … (TIMER / CLOCK)',
+			type: 'boolean',
+			defaultStyle: { bgcolor: combineRgb(0, 110, 70), color: combineRgb(255, 255, 255) },
+			options: [
+				{
+					type: 'dropdown',
+					id: 'mode',
+					label: 'Mode',
+					default: 'CLOCK',
+					choices: [
+						{ id: 'TIMER', label: 'Timer' },
+						{ id: 'CLOCK', label: 'Clock' },
+					],
+				},
+			],
+			callback: (feedback: { options: Record<string, unknown> }) =>
+				String(lastStatus().display_mode ?? 'TIMER').toUpperCase() === String(feedback.options['mode']),
+		},
+		layout_is_active: {
+			name: 'Layout preset is the active one',
+			type: 'boolean',
+			defaultStyle: { bgcolor: combineRgb(0, 110, 70), color: combineRgb(255, 255, 255) },
+			options: [
+				{
+					type: 'dropdown',
+					id: 'mode',
+					label: 'Match by',
+					default: 'slot',
+					choices: [
+						{ id: 'slot', label: 'Slot number' },
+						{ id: 'name', label: 'Name' },
+					],
+				},
+				{
+					type: 'number',
+					id: 'slot',
+					label: 'Slot (1 = first) — used when "Match by" = Slot number',
+					default: 1,
+					min: 1,
+					max: 99,
+				},
+				{
+					type: 'textinput',
+					id: 'name',
+					label: 'Preset name — used when "Match by" = Name',
+					default: '',
+				},
+			],
+			// Same two ways to address a preset as the Recall Layout Preset action,
+			// so a button can recall a layout and light up while it is active.
+			callback: (feedback: { options: Record<string, unknown> }) => {
+				const s = lastStatus()
+				const active = s.layout_preset_active ?? ''
+				if (!active) return false
+				const presets = s.layout_presets ?? []
+				const hit =
+					feedback.options['mode'] === 'name'
+						? presets.find(
+								(p) =>
+									String(p.name).trim().toLowerCase() ===
+									String((feedback.options['name'] as string | undefined) ?? '')
+										.trim()
+										.toLowerCase(),
+							)
+						: presets.find((p) => Number(p.slot) === Number(feedback.options['slot']))
+				return !!hit && hit.id === active
+			},
 		},
 
 		// ─── v1.19.0: OMT / LTC Generator / Chase to Timecode / DSAN RX ───
