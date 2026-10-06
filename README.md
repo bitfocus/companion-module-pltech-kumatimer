@@ -30,6 +30,9 @@ DSAN RX active.
 `omt_enabled`, `omt_active`, `ltc_generator_enabled`, `ltc_generator_active`,
 `ltc_chase_enabled`, `ltc_chase_active`, `dsan_rx_active`, `blackmagic_active`
 
+**Timer parts and timecode variables:** `timer_hh`, `timer_mm`, `timer_ss`, `timer_ff`, `timer_full`;
+`ltc_timecode`, `ltc_generator_timecode`, `dsan_rx_timer` (empty = no signal; host v1.19.3+)
+
 ## Requirements
 
 - [KUMA Timer](https://kuma.pl-tech.co.uk) v1.6.0 or later running on the same network

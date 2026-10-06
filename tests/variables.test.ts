@@ -40,8 +40,8 @@ describe('setupVariables', () => {
 		expect(ids).toContain('qlab_following')
 		expect(ids).toContain('qlab_cue')
 		expect(ids).toContain('qlab_hold')
-		// 29 base (9 + 7 qlab + 8 state flags + 5 timer parts) + 18 preset + 48 cue + 13 layout (1 active + 12 names) = 108
-		expect(ids).toHaveLength(108)
+		// 32 base (9 + 7 qlab + 8 state flags + 5 timer parts + 3 timecodes) + 18 preset + 48 cue + 13 layout (1 active + 12 names) = 111
+		expect(ids).toHaveLength(111)
 	})
 
 	it('calls clearVariables (setVariableValues) immediately', () => {
@@ -337,5 +337,46 @@ describe('timer parts (v2.5.0)', () => {
 			_timer_display: '05:23:12',
 		})
 		expect(set.mock.calls[0][0].timer).toBe('05:23')
+	})
+})
+
+// v2.5.0 — timecode / timer TEXT from the host ('' = no signal).
+describe('timecode variables (v2.5.0)', () => {
+	const FIELDS = ['ltc_timecode', 'ltc_generator_timecode', 'dsan_rx_timer'] as const
+	const run = (fn: (i: Parameters<typeof updateVariables>[0]) => void): Record<string, string> => {
+		const set = vi.fn()
+		fn({ setVariableValues: set } as unknown as Parameters<typeof updateVariables>[0])
+		return set.mock.calls[0][0] as Record<string, string>
+	}
+
+	it.each(FIELDS)('%s is defined', (id) => {
+		const defs = vi.fn()
+		setupVariables({ setVariableDefinitions: defs, setVariableValues: vi.fn() } as unknown as Parameters<
+			typeof setupVariables
+		>[0])
+		expect(Object.keys(defs.mock.calls[0][0])).toContain(id)
+	})
+
+	it.each(FIELDS)('%s passes the host text through verbatim', (id) => {
+		expect(run((i) => updateVariables(i, { [id]: '01:02:03:04' } as KumaApiStatus))[id]).toBe('01:02:03:04')
+	})
+
+	it.each(FIELDS)('%s is empty when the host reports no signal', (id) => {
+		expect(run((i) => updateVariables(i, { [id]: '' } as KumaApiStatus))[id]).toBe('')
+	})
+
+	it.each(FIELDS)('%s is empty (not "undefined") when an older host omits it', (id) => {
+		expect(run((i) => updateVariables(i, {}))[id]).toBe('')
+	})
+
+	it.each(FIELDS)('clearVariables blanks %s', (id) => {
+		expect(run((i) => clearVariables(i))[id]).toBe('')
+	})
+
+	it('the three sources do not bleed into each other', () => {
+		const v = run((i) => updateVariables(i, { ltc_timecode: '10:00:00:01' }))
+		expect(v.ltc_timecode).toBe('10:00:00:01')
+		expect(v.ltc_generator_timecode).toBe('')
+		expect(v.dsan_rx_timer).toBe('')
 	})
 })

@@ -111,6 +111,10 @@ export function setupVariables(instance: InstanceBase<KumaTypes>): void {
 		ltc_chase_active: { name: 'Chase to Timecode: armed and counting to next cue (true/false)' },
 		dsan_rx_active: { name: 'DSAN Limitimer: live RX signal (true/false)' },
 		blackmagic_active: { name: 'Blackmagic: output is live (true/false)' },
+		// Timecode / timer TEXT (empty string = no signal) — host v1.19.3+.
+		ltc_timecode: { name: 'LTC input timecode HH:MM:SS:FF (empty = no signal)' },
+		ltc_generator_timecode: { name: 'LTC Generator timecode HH:MM:SS:FF (empty = not running)' },
+		dsan_rx_timer: { name: 'DSAN Limitimer: received timer (empty = no signal)' },
 	}
 	// v2.0.0 BETA: per-preset variables for use in user-built button
 	// labels. Auto-update from /api/status every poll. Thomas request
@@ -176,6 +180,9 @@ export function updateVariables(instance: InstanceBase<KumaTypes>, data: KumaApi
 		ltc_chase_active: String(data.ltc_chase_active ?? false),
 		dsan_rx_active: String(data.dsan_rx_active ?? false),
 		blackmagic_active: String(data.blackmagic_active ?? false),
+		ltc_timecode: data.ltc_timecode ?? '',
+		ltc_generator_timecode: data.ltc_generator_timecode ?? '',
+		dsan_rx_timer: data.dsan_rx_timer ?? '',
 	}
 	// Preset variables — read from `preset_seconds` (v1.12.0+) when
 	// present, otherwise derive from the legacy `presets` minutes
@@ -253,6 +260,9 @@ export function clearVariables(instance: InstanceBase<KumaTypes>): void {
 		ltc_chase_active: 'false',
 		dsan_rx_active: 'false',
 		blackmagic_active: 'false',
+		ltc_timecode: '',
+		ltc_generator_timecode: '',
+		dsan_rx_timer: '',
 	}
 	for (let i = 1; i <= PRESET_SLOTS; i++) {
 		values[`preset_${i}_minutes`] = ''

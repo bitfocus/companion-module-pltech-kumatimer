@@ -68,6 +68,12 @@ export interface KumaApiStatus {
 	ltc_chase_enabled?: boolean
 	ltc_chase_active?: boolean // true only while armed + counting to a cue target
 	dsan_rx_active?: boolean
+	// Current timecode / timer TEXT for external readouts. '' = no signal.
+	// Evaluated by the host per /api/status request (host v1.19.3+; older hosts
+	// simply omit them, which reads as '').
+	ltc_timecode?: string // incoming LTC (Chase / RX), HH:MM:SS:FF
+	ltc_generator_timecode?: string // LTC Generator output position, HH:MM:SS:FF
+	dsan_rx_timer?: string // timer text received from the DSAN Limitimer
 	// RC2, 17 Sep 2026 — Blackmagic "Live KUMA Timer" output. Dev/test
 	// feature with no persisted config flag (unlike omt_enabled etc.), so
 	// there's only one state bit: whether it's actually on air right now.

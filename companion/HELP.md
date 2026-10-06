@@ -62,29 +62,37 @@ If KUMA Timer is running on the same machine as Companion, use `127.0.0.1`.
 
 ## Available Variables
 
-| Variable                                    | Description                                                          |
-| ------------------------------------------- | -------------------------------------------------------------------- |
-| `$(pltech-kumatimer:timer)`                 | Current time string (e.g. `05:23`)                                   |
-| `$(pltech-kumatimer:timer_seconds)`         | Remaining seconds as a number                                        |
-| `$(pltech-kumatimer:status)`                | Status: `LIVE`, `PAUSED`, `STANDBY`, or `HIDDEN`                     |
-| `$(pltech-kumatimer:display_mode)`          | Display mode: `TIMER` or `CLOCK`                                     |
-| `$(pltech-kumatimer:cue_name)`              | Name of the currently loaded cue / speaker                           |
-| `$(pltech-kumatimer:cue_index)`             | Index of the current cue (−1 if none)                                |
-| `$(pltech-kumatimer:overtime)`              | `true` if in overtime, otherwise `false`                             |
-| `$(pltech-kumatimer:progress)`              | Progress bar value (0–100 %)                                         |
-| `$(pltech-kumatimer:sms_active)`            | `true` if a message overlay is active                                |
-| `$(pltech-kumatimer:omt_enabled)`           | `true` if OMT output is enabled, otherwise `false`                   |
-| `$(pltech-kumatimer:omt_active)`            | `true` while the OMT sender is live                                  |
-| `$(pltech-kumatimer:ltc_generator_enabled)` | `true` if the LTC Generator is enabled                               |
-| `$(pltech-kumatimer:ltc_generator_active)`  | `true` while the LTC Generator transport is live                     |
-| `$(pltech-kumatimer:ltc_chase_enabled)`     | `true` if Chase to Timecode is enabled                               |
-| `$(pltech-kumatimer:ltc_chase_active)`      | `true` while Chase to Timecode is armed and counting to the next cue |
-| `$(pltech-kumatimer:dsan_rx_active)`        | `true` while a live DSAN Limitimer RX signal is received             |
-| `$(pltech-kumatimer:blackmagic_active)`     | `true` while the Blackmagic output is live                           |
+| Variable                                             | Description                                                                          |
+| ---------------------------------------------------- | ------------------------------------------------------------------------------------ |
+| `$(pltech-kumatimer:timer)`                          | Current time string (e.g. `05:23`)                                                   |
+| `$(pltech-kumatimer:timer_seconds)`                  | Remaining seconds as a number                                                        |
+| `$(pltech-kumatimer:status)`                         | Status: `LIVE`, `PAUSED`, `STANDBY`, or `HIDDEN`                                     |
+| `$(pltech-kumatimer:display_mode)`                   | Display mode: `TIMER` or `CLOCK`                                                     |
+| `$(pltech-kumatimer:cue_name)`                       | Name of the currently loaded cue / speaker                                           |
+| `$(pltech-kumatimer:cue_index)`                      | Index of the current cue (−1 if none)                                                |
+| `$(pltech-kumatimer:overtime)`                       | `true` if in overtime, otherwise `false`                                             |
+| `$(pltech-kumatimer:progress)`                       | Progress bar value (0–100 %)                                                         |
+| `$(pltech-kumatimer:sms_active)`                     | `true` if a message overlay is active                                                |
+| `$(pltech-kumatimer:omt_enabled)`                    | `true` if OMT output is enabled, otherwise `false`                                   |
+| `$(pltech-kumatimer:omt_active)`                     | `true` while the OMT sender is live                                                  |
+| `$(pltech-kumatimer:ltc_generator_enabled)`          | `true` if the LTC Generator is enabled                                               |
+| `$(pltech-kumatimer:ltc_generator_active)`           | `true` while the LTC Generator transport is live                                     |
+| `$(pltech-kumatimer:ltc_chase_enabled)`              | `true` if Chase to Timecode is enabled                                               |
+| `$(pltech-kumatimer:ltc_chase_active)`               | `true` while Chase to Timecode is armed and counting to the next cue                 |
+| `$(pltech-kumatimer:dsan_rx_active)`                 | `true` while a live DSAN Limitimer RX signal is received                             |
+| `$(pltech-kumatimer:blackmagic_active)`              | `true` while the Blackmagic output is live                                           |
+| `$(pltech-kumatimer:timer_hh)` `timer_mm` `timer_ss` | The timer split into hours / minutes / seconds (`00` hours when the format has none) |
+| `$(pltech-kumatimer:timer_ff)`                       | Frames — only in the frame-accurate (`:FR`) formats and in LTC mode, otherwise `--`  |
+| `$(pltech-kumatimer:timer_full)`                     | The whole display text on one button, including frames when shown (e.g. `05:23:12`)  |
+| `$(pltech-kumatimer:ltc_timecode)`                   | Incoming LTC timecode `HH:MM:SS:FF`; empty when there is no signal                   |
+| `$(pltech-kumatimer:ltc_generator_timecode)`         | LTC Generator output position `HH:MM:SS:FF`; empty when the generator is not running |
+| `$(pltech-kumatimer:dsan_rx_timer)`                  | Timer received from the DSAN Limitimer; empty when there is no signal                |
 
 The last eight are the same states as the feedbacks of the same name, exposed
 as variables so external dashboards (which read variables, not feedbacks) can
 show them. They read `false` while the host is unreachable.
+
+The three timecode variables need KUMA Timer v1.19.3 or later (older hosts leave them empty).
 
 ---
 
