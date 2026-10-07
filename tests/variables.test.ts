@@ -2,7 +2,7 @@ import { describe, it, expect, vi } from 'vitest'
 
 vi.mock('@companion-module/base', () => ({}))
 
-import { setupVariables, updateVariables, clearVariables, splitTimer } from '../src/variables.js'
+import { setupVariables, updateVariables, clearVariables, splitTimer, formatMediaRemaining } from '../src/variables.js'
 import type { KumaApiStatus } from '../src/types.js'
 
 /** Minimal mock of InstanceBase — only the methods we care about. */
@@ -40,8 +40,8 @@ describe('setupVariables', () => {
 		expect(ids).toContain('qlab_following')
 		expect(ids).toContain('qlab_cue')
 		expect(ids).toContain('qlab_hold')
-		// 38 base (9 + 7 qlab + 8 state flags + 5 timer parts + 3 timecodes + 6 tcr/glide/jump) + 18 preset + 48 cue + 13 layout (1 active + 12 names) = 117
-		expect(ids).toHaveLength(117)
+		// 44 base (9 + 7 qlab + 8 state flags + 5 timer parts + 3 timecodes + 6 tcr/glide/jump + 6 powerpoint) + 18 preset + 48 cue + 13 layout (1 active + 12 names) = 123
+		expect(ids).toHaveLength(123)
 	})
 
 	it('calls clearVariables (setVariableValues) immediately', () => {
@@ -429,4 +429,103 @@ describe('TCR / Glide / Jump variables (v2.5.0)', () => {
 			time_jump_active: 'false',
 		})
 	})
+})
+
+// PowerPoint add-in (KumaPoint) slide-show panel — file / slide N of M / builds /
+// media. The host OMITS the whole `ppt` object when there is no show, so the
+// empty case is the common one and must be clean.
+describe('PowerPoint slide-show variables', () => {
+	const IDS = [
+		'ppt_file',
+		'ppt_slide',
+		'ppt_slide_total',
+		'ppt_builds_remaining',
+		'ppt_media_state',
+		'ppt_media_remaining',
+	] as const
+	const run = (data: KumaApiStatus): Record<string, string> => {
+		const set = vi.fn()
+		updateVariables({ setVariableValues: set } as unknown as Parameters<typeof updateVariables>[0], data)
+		return set.mock.calls[0][0] as Record<string, string>
+	}
+
+	it.each(IDS)('%s is defined', (id) => {
+		const defs = vi.fn()
+		setupVariables({ setVariableDefinitions: defs, setVariableValues: vi.fn() } as unknown as Parameters<
+			typeof setupVariables
+		>[0])
+		expect(Object.keys(defs.mock.calls[0][0])).toContain(id)
+	})
+
+	it('maps the host fields (the reference dashboard: slide 4/13, 0 builds, 15:43 playing)', () => {
+		const v = run({
+			ppt: {
+				file: 'sample-presentation.pptx',
+				slide: 4,
+				total: 13,
+				builds_remaining: 0,
+				builds_total: 3,
+				media: 'playing',
+				media_remaining: 943,
+			},
+		} as KumaApiStatus)
+		expect(v.ppt_file).toBe('sample-presentation.pptx')
+		expect(v.ppt_slide).toBe('4')
+		expect(v.ppt_slide_total).toBe('13')
+		expect(v.ppt_builds_remaining).toBe('0')
+		expect(v.ppt_media_state).toBe('PLAYING')
+		expect(v.ppt_media_remaining).toBe('15:43')
+	})
+
+	it('is all blank/zero when the host sends no ppt object (no show, or an older host)', () => {
+		const v = run({})
+		expect(v.ppt_file).toBe('')
+		expect(v.ppt_slide).toBe('0')
+		expect(v.ppt_slide_total).toBe('0')
+		expect(v.ppt_builds_remaining).toBe('0')
+		expect(v.ppt_media_state).toBe('')
+		expect(v.ppt_media_remaining).toBe('')
+	})
+
+	it('never leaks "undefined" / "NaN" when the ppt object is partial', () => {
+		const v = run({ ppt: { file: 'a.pptx' } } as KumaApiStatus)
+		for (const id of IDS) expect(v[id]).not.toMatch(/undefined|NaN/)
+		expect(v.ppt_media_state).toBe('IDLE')
+		expect(v.ppt_media_remaining).toBe('')
+	})
+
+	it('media_remaining is blank while idle (null from the host)', () => {
+		const v = run({ ppt: { media: 'idle', media_remaining: null } } as KumaApiStatus)
+		expect(v.ppt_media_state).toBe('IDLE')
+		expect(v.ppt_media_remaining).toBe('')
+	})
+
+	it.each(IDS)('clearVariables resets %s', (id) => {
+		const set = vi.fn()
+		clearVariables({ setVariableValues: set } as unknown as Parameters<typeof clearVariables>[0])
+		const v = set.mock.calls[0][0] as Record<string, string>
+		expect(v[id]).toBe(id === 'ppt_slide' || id === 'ppt_slide_total' || id === 'ppt_builds_remaining' ? '0' : '')
+	})
+})
+
+describe('formatMediaRemaining', () => {
+	it.each([
+		[943, '15:43'],
+		[0, '00:00'],
+		[59, '00:59'],
+		[60, '01:00'],
+		[3599, '59:59'],
+		[3600, '1:00:00'],
+		[3725, '1:02:05'],
+		[12.9, '00:12'], // floors — the host already ceils
+	])('%s s -> %s', (input, expected) => {
+		expect(formatMediaRemaining(input)).toBe(expected)
+	})
+
+	it.each([[null], [undefined], [NaN], [Infinity], [-1], ['90' as unknown as number]])(
+		'%s is not a usable duration -> empty string',
+		(input) => {
+			expect(formatMediaRemaining(input)).toBe('')
+		},
+	)
 })

@@ -32,6 +32,20 @@ function formatPresetLabel(totalSeconds: number): string {
 	return formatHMS(s)
 }
 
+/** Seconds → "MM:SS" ("H:MM:SS" from an hour up) for the PowerPoint media-time
+ * variable. Empty string for anything that is not a usable duration — null while
+ * nothing is playing, a host that doesn't send the field, NaN, negatives — so a
+ * button label simply goes blank instead of showing "NaN:NaN" or "-1:-1". */
+export function formatMediaRemaining(seconds: number | null | undefined): string {
+	if (typeof seconds !== 'number' || !Number.isFinite(seconds) || seconds < 0) return ''
+	const total = Math.floor(seconds)
+	const h = Math.floor(total / 3600)
+	const m = Math.floor((total % 3600) / 60)
+	const sec = total % 60
+	const pad = (n: number): string => String(n).padStart(2, '0')
+	return h > 0 ? `${h}:${pad(m)}:${pad(sec)}` : `${pad(m)}:${pad(sec)}`
+}
+
 /** Split the host's timer text into HH / MM / SS / FF.
  *
  * `timer` is plain (MM:SS or HH:MM:SS); `_timer_display` is the SAME text with
@@ -117,6 +131,15 @@ export function setupVariables(instance: InstanceBase<KumaTypes>): void {
 		tcr_following: { name: 'TCR: a follow source is driving the timer (true/false)' },
 		tcr_line: { name: 'TCR readout text, e.g. 00:23 (empty when none)' },
 		tcr_name: { name: 'TCR clip / cue name (empty when none)' },
+		// PowerPoint add-in (KumaPoint) slide-show panel. All empty / 0 when no
+		// show is running. ppt_media_remaining is its own variable because
+		// tcr_line is blank in Replace mode.
+		ppt_file: { name: 'PowerPoint: presentation file name (empty when no show)' },
+		ppt_slide: { name: 'PowerPoint: current slide number (0 when no show)' },
+		ppt_slide_total: { name: 'PowerPoint: slides in the deck (0 when no show)' },
+		ppt_builds_remaining: { name: 'PowerPoint: animation builds still ahead on this slide' },
+		ppt_media_state: { name: 'PowerPoint: media state, PLAYING or IDLE (empty when no show)' },
+		ppt_media_remaining: { name: 'PowerPoint: playing clip time left, MM:SS (empty when idle)' },
 		time_glide_active: { name: 'Time Glide: a glide is running (true/false)' },
 		time_jump_active: { name: 'Time Jump: a jump is running (true/false)' },
 		// Timecode / timer TEXT (empty string = no signal) — host v1.19.3+.
@@ -194,6 +217,12 @@ export function updateVariables(instance: InstanceBase<KumaTypes>, data: KumaApi
 		tcr_following: String(data.tcr_following ?? data.qlab_following ?? false),
 		tcr_line: data.tcr_line ?? '',
 		tcr_name: data.tcr_name ?? '',
+		ppt_file: data.ppt?.file ?? '',
+		ppt_slide: String(data.ppt?.slide ?? 0),
+		ppt_slide_total: String(data.ppt?.total ?? 0),
+		ppt_builds_remaining: String(data.ppt?.builds_remaining ?? 0),
+		ppt_media_state: data.ppt ? (data.ppt.media ?? 'idle').toUpperCase() : '',
+		ppt_media_remaining: formatMediaRemaining(data.ppt?.media_remaining),
 		time_glide_active: String(data.warp_active ?? false),
 		time_jump_active: String(data.jump_active ?? false),
 		ltc_timecode: data.ltc_timecode ?? '',
@@ -280,6 +309,12 @@ export function clearVariables(instance: InstanceBase<KumaTypes>): void {
 		tcr_following: 'false',
 		tcr_line: '',
 		tcr_name: '',
+		ppt_file: '',
+		ppt_slide: '0',
+		ppt_slide_total: '0',
+		ppt_builds_remaining: '0',
+		ppt_media_state: '',
+		ppt_media_remaining: '',
 		time_glide_active: 'false',
 		time_jump_active: 'false',
 		ltc_timecode: '',

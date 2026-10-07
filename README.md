@@ -39,6 +39,10 @@ DSAN RX active, Blackmagic live.
 **TCR variables:** `tcr_source` (QLAB / MITTI / MILLUMIN / KUMAPOINT / OFF), `tcr_line`
 (the readout text), `tcr_name`
 
+**PowerPoint slide-show variables** (KumaPoint add-in; empty/`0` when no show is running):
+`ppt_file`, `ppt_slide`, `ppt_slide_total`, `ppt_builds_remaining`, `ppt_media_state`
+(PLAYING / IDLE), `ppt_media_remaining` (`MM:SS`)
+
 **Timer parts and timecode variables:** `timer_hh`, `timer_mm`, `timer_ss`, `timer_ff`, `timer_full`;
 `ltc_timecode`, `ltc_generator_timecode`, `dsan_rx_timer` (empty = no signal; host v1.19.3+)
 

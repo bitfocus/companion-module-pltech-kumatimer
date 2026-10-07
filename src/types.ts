@@ -62,6 +62,19 @@ export interface KumaApiStatus {
 	tcr_line_color?: string
 	tcr_name_active?: boolean
 	tcr_name?: string // clip / cue name shown next to it
+	// PowerPoint add-in (KumaPoint) slide-show state. The whole object is OMITTED
+	// by the host when no show is running or the add-in has gone quiet, and on
+	// hosts older than the release that added it — so every field is read through
+	// `data.ppt?.…` and a missing object must mean "no show", never an error.
+	ppt?: {
+		file?: string // presentation file name, e.g. "sample-presentation.pptx"
+		slide?: number // current slide position in the show
+		total?: number // slides in the deck
+		builds_remaining?: number // animation clicks still ahead on this slide
+		builds_total?: number // animation clicks defined on this slide
+		media?: string // 'playing' | 'idle'
+		media_remaining?: number | null // seconds left on the playing clip, else null
+	}
 	// Time Glide / Time Jump (the "Time Cut" panel)
 	warp_active?: boolean // a Time Glide is running
 	warp_interval_ms?: number

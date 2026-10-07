@@ -97,6 +97,11 @@ If KUMA Timer is running on the same machine as Companion, use `127.0.0.1`.
 | `$(pltech-kumatimer:tcr_source)`                           | Selected TCR source: `QLAB`, `MITTI`, `MILLUMIN`, `KUMAPOINT` or `OFF`               |
 | `$(pltech-kumatimer:tcr_following)`                        | `true` while a TCR source is driving the timer                                       |
 | `$(pltech-kumatimer:tcr_line)` `tcr_name`                  | The TCR readout (e.g. `00:23`) and the clip/cue name; empty when none                |
+| `$(pltech-kumatimer:ppt_file)`                             | PowerPoint presentation file name; empty when no slide show is running               |
+| `$(pltech-kumatimer:ppt_slide)` `ppt_slide_total`          | Current slide and deck size (`4` and `13`); `0` when no show                         |
+| `$(pltech-kumatimer:ppt_builds_remaining)`                 | Animation builds still ahead on the current slide                                    |
+| `$(pltech-kumatimer:ppt_media_state)`                      | `PLAYING` or `IDLE`; empty when no show                                              |
+| `$(pltech-kumatimer:ppt_media_remaining)`                  | Time left on the playing clip, `MM:SS`; empty when idle                              |
 | `$(pltech-kumatimer:time_glide_active)` `time_jump_active` | `true` while a Time Glide / Time Jump is running                                     |
 | `$(pltech-kumatimer:timer_full)`                           | The whole display text on one button, including frames when shown (e.g. `05:23:12`)  |
 | `$(pltech-kumatimer:ltc_timecode)`                         | Incoming LTC timecode `HH:MM:SS:FF`; empty when there is no signal                   |
