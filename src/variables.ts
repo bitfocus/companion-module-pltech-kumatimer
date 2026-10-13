@@ -33,6 +33,14 @@ function formatPresetLabel(totalSeconds: number): string {
 	return formatHMS(s)
 }
 
+/** "19/115" for a button label. Just "19" when the deck length is unknown, "" when no
+ * show is running (slide 0 / missing), so a label goes blank instead of "0/0". */
+export function formatSlideOf(slide: number | null | undefined, total: number | null | undefined): string {
+	if (typeof slide !== 'number' || !Number.isFinite(slide) || slide < 1) return ''
+	if (typeof total !== 'number' || !Number.isFinite(total) || total < slide) return String(Math.floor(slide))
+	return `${Math.floor(slide)}/${Math.floor(total)}`
+}
+
 /** Seconds → "MM:SS" ("H:MM:SS" from an hour up) for the PowerPoint media-time
  * variable. Empty string for anything that is not a usable duration — null while
  * nothing is playing, a host that doesn't send the field, NaN, negatives — so a
@@ -138,6 +146,9 @@ export function setupVariables(instance: InstanceBase<KumaTypes>): void {
 		ppt_file: { name: 'PowerPoint: presentation file name (empty when no show)' },
 		ppt_slide: { name: 'PowerPoint: current slide number (0 when no show)' },
 		ppt_slide_total: { name: 'PowerPoint: slides in the deck (0 when no show)' },
+		ppt_slide_of: {
+			name: 'PowerPoint: slide as "19/115" (just "19" if the deck length is unknown, empty when no show)',
+		},
 		ppt_builds_remaining: { name: 'PowerPoint: animation builds still ahead on this slide' },
 		ppt_media_state: { name: 'PowerPoint: media state, PLAYING or IDLE (empty when no show)' },
 		ppt_media_remaining: { name: 'PowerPoint: playing clip time left, MM:SS (empty when idle)' },
@@ -222,6 +233,7 @@ export function updateVariables(instance: InstanceBase<KumaTypes>, data: KumaApi
 		ppt_file: data.ppt?.file ?? '',
 		ppt_slide: String(data.ppt?.slide ?? 0),
 		ppt_slide_total: String(data.ppt?.total ?? 0),
+		ppt_slide_of: formatSlideOf(data.ppt?.slide, data.ppt?.total),
 		ppt_builds_remaining: String(data.ppt?.builds_remaining ?? 0),
 		ppt_media_state: data.ppt ? (data.ppt.media ?? 'idle').toUpperCase() : '',
 		ppt_media_remaining: formatMediaRemaining(data.ppt?.media_remaining),

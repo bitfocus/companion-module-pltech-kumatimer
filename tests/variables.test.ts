@@ -2,7 +2,14 @@ import { describe, it, expect, vi } from 'vitest'
 
 vi.mock('@companion-module/base', () => ({}))
 
-import { setupVariables, updateVariables, clearVariables, splitTimer, formatMediaRemaining } from '../src/variables.js'
+import {
+	setupVariables,
+	updateVariables,
+	clearVariables,
+	splitTimer,
+	formatMediaRemaining,
+	formatSlideOf,
+} from '../src/variables.js'
 import type { KumaApiStatus } from '../src/types.js'
 
 /** Minimal mock of InstanceBase — only the methods we care about. */
@@ -40,8 +47,8 @@ describe('setupVariables', () => {
 		expect(ids).toContain('qlab_following')
 		expect(ids).toContain('qlab_cue')
 		expect(ids).toContain('qlab_hold')
-		// 44 base (9 + 7 qlab + 8 state flags + 5 timer parts + 3 timecodes + 6 tcr/glide/jump + 6 powerpoint) + 18 preset + 48 cue + 13 layout (1 active + 12 names) = 123, + 39 multi-source TCR / KumaPoint machine / version variables = 162
-		expect(ids).toHaveLength(162)
+		// 44 base (9 + 7 qlab + 8 state flags + 5 timer parts + 3 timecodes + 6 tcr/glide/jump + 6 powerpoint) + 18 preset + 48 cue + 13 layout (1 active + 12 names) = 123, + 39 multi-source TCR / KumaPoint machine / version variables = 162, + 1 combined slide variable (ppt_slide_of) = 163
+		expect(ids).toHaveLength(163)
 	})
 
 	it('calls clearVariables (setVariableValues) immediately', () => {
@@ -528,4 +535,19 @@ describe('formatMediaRemaining', () => {
 			expect(formatMediaRemaining(input)).toBe('')
 		},
 	)
+})
+
+describe('formatSlideOf', () => {
+	it.each([
+		[19, 115, '19/115'],
+		[1, 1, '1/1'],
+		[19, 0, '19'],
+		[19, undefined, '19'],
+		[19, 5, '19'],
+		[0, 115, ''],
+		[undefined, undefined, ''],
+		[NaN, 10, ''],
+	])('slide %s of %s -> %j', (slide, total, expected) => {
+		expect(formatSlideOf(slide, total)).toBe(expected)
+	})
 })
