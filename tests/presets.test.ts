@@ -243,8 +243,16 @@ describe('setupPresets', () => {
 	describe('structure (v2 categorisation replacement)', () => {
 		const p = setupPresets(['Cue A'], [5])
 
-		it('exposes 6 sections in stable order', () => {
-			expect(p.structure.map((s) => s.id)).toEqual(['transport', 'presets', 'cues', 'qlab', 'info', 'sms'])
+		it('exposes 7 sections in stable order', () => {
+			expect(p.structure.map((s) => s.id)).toEqual([
+				'transport',
+				'presets',
+				'cues',
+				'qlab',
+				'tcr_sources',
+				'info',
+				'sms',
+			])
 		})
 
 		it('transport section contains all transport buttons', () => {
@@ -348,6 +356,6 @@ describe('mode / Glide / Jump / TCR presets (v2.5.0)', () => {
 	})
 
 	it('keeps the section ids (saved layouts depend on them)', () => {
-		expect(p.structure.map((s) => s.id)).toEqual(['transport', 'presets', 'cues', 'qlab', 'info', 'sms'])
+		expect(p.structure.map((s) => s.id)).toEqual(['transport', 'presets', 'cues', 'qlab', 'tcr_sources', 'info', 'sms'])
 	})
 })

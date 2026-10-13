@@ -1,5 +1,6 @@
 import type { InstanceBase, CompanionVariableDefinitions, CompanionVariableValues } from '@companion-module/base'
 import type { KumaTypes, KumaApiStatus } from './types.js'
+import { tcrVariableDefinitions, tcrVariableValues, tcrVariableDefaults } from './tcr.js'
 
 // How many preset and cue slots get exposed as Companion variables.
 // 6 presets matches the host's preset row exactly. 12 cue slots covers
@@ -173,6 +174,7 @@ export function setupVariables(instance: InstanceBase<KumaTypes>): void {
 	for (let i = 1; i <= LAYOUT_SLOTS; i++) {
 		definitions[`layout_${i}_name`] = { name: `Layout preset ${i} — name` }
 	}
+	Object.assign(definitions, tcrVariableDefinitions())
 	instance.setVariableDefinitions(definitions)
 	clearVariables(instance)
 }
@@ -271,6 +273,7 @@ export function updateVariables(instance: InstanceBase<KumaTypes>, data: KumaApi
 	for (let i = 0; i < LAYOUT_SLOTS; i++) {
 		values[`layout_${i + 1}_name`] = layouts[i]?.name ?? ''
 	}
+	Object.assign(values, tcrVariableValues(data))
 	instance.setVariableValues(values)
 }
 
@@ -336,5 +339,6 @@ export function clearVariables(instance: InstanceBase<KumaTypes>): void {
 	for (let i = 1; i <= LAYOUT_SLOTS; i++) {
 		values[`layout_${i}_name`] = ''
 	}
+	Object.assign(values, tcrVariableDefaults())
 	instance.setVariableValues(values)
 }

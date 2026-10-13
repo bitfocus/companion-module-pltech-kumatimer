@@ -177,7 +177,7 @@ describe('setupFeedbacks', () => {
 		}
 	})
 
-	it('exposes all 28 feedbacks', () => {
+	it('exposes all 33 feedbacks', () => {
 		const f = setupFeedbacks(() => ({}))
 		const ids = Object.keys(f)
 		expect(ids).toContain('is_live')
@@ -211,7 +211,7 @@ describe('setupFeedbacks', () => {
 			'layout_is_active',
 		])
 			expect(ids).toContain(id)
-		expect(ids).toHaveLength(28)
+		expect(ids).toHaveLength(33)
 	})
 
 	it('uses latest status snapshot on every call', () => {

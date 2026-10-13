@@ -468,11 +468,100 @@ export function setupPresets(cues: string[] = [], presetValues: number[] = []): 
 	}
 	qlabIds.push('tcr_readout')
 
+	// Multi-source TCR (host 13 Oct 2026): every followed source has its own readout, and
+	// PowerPoint presenter machines are grouped (GFX 1 + GFX 1 BACKUP = group 1).
+	const tcrLaneIds: string[] = []
+	for (const [lane, label] of [
+		['qlab', 'QLab'],
+		['mitti', 'Mitti'],
+		['millumin', 'Millumin'],
+		['kumapoint', 'PowerPoint 1'],
+		['kumapoint2', 'PowerPoint 2'],
+		['kumapoint3', 'PowerPoint 3'],
+		['kumapoint4', 'PowerPoint 4'],
+	] as const) {
+		const id = `tcr_${lane}`
+		presets[id] = {
+			type: 'simple',
+			name: `TCR: ${label} readout (its own line)`,
+			style: { text: `${label}\n$(pltech-kumatimer:tcr_${lane}_line)`, size: '14', color: WHITE, bgcolor: BLACK },
+			steps: [],
+			feedbacks: [
+				{ feedbackId: 'tcr_lane_active', options: { lane }, style: { color: WHITE, bgcolor: combineRgb(0, 150, 90) } },
+			],
+		}
+		tcrLaneIds.push(id)
+	}
+	presets['tcr_active_source'] = {
+		type: 'simple',
+		name: 'TCR: which source is shown now',
+		style: { text: 'TCR NOW\n$(pltech-kumatimer:tcr_active_source)', size: '14', color: WHITE, bgcolor: BLACK },
+		steps: [],
+		feedbacks: [{ feedbackId: 'tcr_following', options: {}, style: { color: WHITE, bgcolor: combineRgb(0, 150, 90) } }],
+	}
+	tcrLaneIds.push('tcr_active_source')
+	presets['kp_backup_on_air'] = {
+		type: 'simple',
+		name: 'PowerPoint: BACKUP ON AIR alarm (any group)',
+		style: { text: 'PPT\nBACKUP OK', size: '14', color: WHITE, bgcolor: GREY },
+		steps: [],
+		feedbacks: [
+			{
+				feedbackId: 'kp_backup_on_air',
+				options: { group: '0' },
+				style: { text: 'BACKUP\nON AIR', color: WHITE, bgcolor: combineRgb(200, 100, 0) },
+			},
+		],
+	}
+	tcrLaneIds.push('kp_backup_on_air')
+	presets['kp_diverged'] = {
+		type: 'simple',
+		name: 'PowerPoint: primary / backup DIVERGED alarm (any group)',
+		style: { text: 'PPT\nIN SYNC', size: '14', color: WHITE, bgcolor: GREY },
+		steps: [],
+		feedbacks: [
+			{
+				feedbackId: 'kp_diverged',
+				options: { group: '0' },
+				style: { text: 'PPT\nDIVERGED', color: WHITE, bgcolor: combineRgb(200, 0, 0) },
+			},
+		],
+	}
+	tcrLaneIds.push('kp_diverged')
+	for (let n = 1; n <= 4; n++) {
+		const id = `kp_machine${n}`
+		presets[id] = {
+			type: 'simple',
+			name: `PowerPoint machine ${n}: name and state`,
+			style: {
+				text: `$(pltech-kumatimer:kp_input${n}_name)\n$(pltech-kumatimer:kp_input${n}_state)`,
+				size: '14',
+				color: WHITE,
+				bgcolor: BLACK,
+			},
+			steps: [],
+			feedbacks: [
+				{
+					feedbackId: 'kp_machine_state',
+					options: { machine: String(n), state: 'NO SIGNAL' },
+					style: { color: WHITE, bgcolor: combineRgb(200, 0, 0) },
+				},
+				{
+					feedbackId: 'kp_machine_state',
+					options: { machine: String(n), state: 'PLAYING' },
+					style: { color: WHITE, bgcolor: combineRgb(0, 150, 90) },
+				},
+			],
+		}
+		tcrLaneIds.push(id)
+	}
+
 	const structure: CompanionPresetSection[] = [
 		{ id: 'transport', name: 'Transport', definitions: transportIds },
 		{ id: 'presets', name: 'Presets', definitions: presetIds },
 		{ id: 'cues', name: 'Cues', definitions: cueIds },
 		{ id: 'qlab', name: 'TCR / QLab', definitions: qlabIds },
+		{ id: 'tcr_sources', name: 'TCR / all sources & PowerPoint machines', definitions: tcrLaneIds },
 		{ id: 'info', name: 'Info', definitions: infoIds },
 		{ id: 'sms', name: 'SMS', definitions: smsIds },
 	]

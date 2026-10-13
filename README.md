@@ -39,6 +39,15 @@ DSAN RX active, Blackmagic live.
 **TCR variables:** `tcr_source` (QLAB / MITTI / MILLUMIN / KUMAPOINT / OFF), `tcr_line`
 (the readout text), `tcr_name`
 
+**Multi-source TCR and PowerPoint presenter machines** (host 13 Oct 2026, empty / `false` on older hosts):
+KUMA can follow QLab, Mitti, Millumin and PowerPoint at the same time and each keeps its own line.
+`tcr_active_source` (the source shown now), `tcr_<qlab|mitti|millumin|kumapoint|kumapoint2|kumapoint3|kumapoint4>_line`
+and `_active`. PowerPoint presenter machines are grouped (GFX 1 + GFX 1 BACKUP = group 1): `kp_group<N>_active_input`,
+`kp_group<N>_using_backup`, `kp_group<N>_diverge_s`, per machine `kp_input<N>_name` / `kp_input<N>_state`
+(`PLAYING 00:23`, `IDLE`, `NO SIGNAL`), and `kp_backup_active` / `kp_diverged`. Feedbacks: TCR source has a line,
+TCR line shown belongs to…, PowerPoint backup on air, primary/backup diverged, machine state. Presets: section
+"TCR / all sources & PowerPoint machines".
+
 **PowerPoint slide-show variables** (KumaPoint add-in; empty/`0` when no show is running):
 `ppt_file`, `ppt_slide`, `ppt_slide_total`, `ppt_builds_remaining`, `ppt_media_state`
 (PLAYING / IDLE), `ppt_media_remaining` (`MM:SS`)

@@ -62,6 +62,54 @@ export interface KumaApiStatus {
 	tcr_line_color?: string
 	tcr_name_active?: boolean
 	tcr_name?: string // clip / cue name shown next to it
+	// Multi-source TCR (host 13 Oct 2026): several sources can be followed at once and each has
+	// its own line (tcr_<qlab|mitti|millumin|kumapoint[2-4]>_line / _line_active / _line_color).
+	tcr_active_source?: string // the source whose line is shown now ('' when none)
+	tcr_qlab_line?: string
+	tcr_qlab_line_active?: boolean
+	tcr_qlab_line_color?: string
+	tcr_mitti_line?: string
+	tcr_mitti_line_active?: boolean
+	tcr_mitti_line_color?: string
+	tcr_millumin_line?: string
+	tcr_millumin_line_active?: boolean
+	tcr_millumin_line_color?: string
+	tcr_kumapoint_line?: string
+	tcr_kumapoint_line_active?: boolean
+	tcr_kumapoint_line_color?: string
+	tcr_kumapoint2_line?: string
+	tcr_kumapoint2_line_active?: boolean
+	tcr_kumapoint2_line_color?: string
+	tcr_kumapoint3_line?: string
+	tcr_kumapoint3_line_active?: boolean
+	tcr_kumapoint3_line_color?: string
+	tcr_kumapoint4_line?: string
+	tcr_kumapoint4_line_active?: boolean
+	tcr_kumapoint4_line_color?: string
+	tcr_extra_sources?: string[] // sources followed in addition to tcr_source
+	// KumaPoint presenter machines — present only when more than one is configured.
+	kumapoint_inputs?: {
+		name: string
+		lane: string
+		role: string // 'primary' | 'backup'
+		port: number
+		receiving: boolean // the machine is talking (any packet in the last few seconds)
+		playing: boolean
+		remaining: number | null // seconds left of the playing clip
+		media: string
+		active: boolean // this machine is the one drawing its group's line
+	}[]
+	kumapoint_groups?: {
+		lane: string // 'kumapoint' = group 1, 'kumapoint2' = group 2 ...
+		active_input: string
+		using_backup: boolean
+		primary_ok: boolean
+		backup_ok: boolean
+		diverge_s: number | null // |primary - backup| time left, when both play
+		diverged: boolean
+	}[]
+	kumapoint_backup_active?: boolean
+	kumapoint_diverged?: boolean
 	// PowerPoint add-in (KumaPoint) slide-show state. The whole object is OMITTED
 	// by the host when no show is running or the add-in has gone quiet, and on
 	// hosts older than the release that added it — so every field is read through

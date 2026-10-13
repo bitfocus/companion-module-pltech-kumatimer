@@ -73,40 +73,46 @@ If KUMA Timer is running on the same machine as Companion, use `127.0.0.1`.
 
 ## Available Variables
 
-| Variable                                                   | Description                                                                          |
-| ---------------------------------------------------------- | ------------------------------------------------------------------------------------ |
-| `$(pltech-kumatimer:timer)`                                | Current time string (e.g. `05:23`)                                                   |
-| `$(pltech-kumatimer:timer_seconds)`                        | Remaining seconds as a number                                                        |
-| `$(pltech-kumatimer:status)`                               | Status: `LIVE`, `PAUSED`, `STANDBY`, or `HIDDEN`                                     |
-| `$(pltech-kumatimer:display_mode)`                         | Display mode: `TIMER` or `CLOCK`                                                     |
-| `$(pltech-kumatimer:cue_name)`                             | Name of the currently loaded cue / speaker                                           |
-| `$(pltech-kumatimer:cue_index)`                            | Index of the current cue (−1 if none)                                                |
-| `$(pltech-kumatimer:overtime)`                             | `true` if in overtime, otherwise `false`                                             |
-| `$(pltech-kumatimer:progress)`                             | Progress bar value (0–100 %)                                                         |
-| `$(pltech-kumatimer:sms_active)`                           | `true` if a message overlay is active                                                |
-| `$(pltech-kumatimer:omt_enabled)`                          | `true` if OMT output is enabled, otherwise `false`                                   |
-| `$(pltech-kumatimer:omt_active)`                           | `true` while the OMT sender is live                                                  |
-| `$(pltech-kumatimer:ltc_generator_enabled)`                | `true` if the LTC Generator is enabled                                               |
-| `$(pltech-kumatimer:ltc_generator_active)`                 | `true` while the LTC Generator transport is live                                     |
-| `$(pltech-kumatimer:ltc_chase_enabled)`                    | `true` if Chase to Timecode is enabled                                               |
-| `$(pltech-kumatimer:ltc_chase_active)`                     | `true` while Chase to Timecode is armed and counting to the next cue                 |
-| `$(pltech-kumatimer:dsan_rx_active)`                       | `true` while a live DSAN Limitimer RX signal is received                             |
-| `$(pltech-kumatimer:blackmagic_active)`                    | `true` while the Blackmagic output is live                                           |
-| `$(pltech-kumatimer:timer_hh)` `timer_mm` `timer_ss`       | The timer split into hours / minutes / seconds (`00` hours when the format has none) |
-| `$(pltech-kumatimer:timer_ff)`                             | Frames — only in the frame-accurate (`:FR`) formats and in LTC mode, otherwise `--`  |
-| `$(pltech-kumatimer:tcr_source)`                           | Selected TCR source: `QLAB`, `MITTI`, `MILLUMIN`, `KUMAPOINT` or `OFF`               |
-| `$(pltech-kumatimer:tcr_following)`                        | `true` while a TCR source is driving the timer                                       |
-| `$(pltech-kumatimer:tcr_line)` `tcr_name`                  | The TCR readout (e.g. `00:23`) and the clip/cue name; empty when none                |
-| `$(pltech-kumatimer:ppt_file)`                             | PowerPoint presentation file name; empty when no slide show is running               |
-| `$(pltech-kumatimer:ppt_slide)` `ppt_slide_total`          | Current slide and deck size (`4` and `13`); `0` when no show                         |
-| `$(pltech-kumatimer:ppt_builds_remaining)`                 | Animation builds still ahead on the current slide                                    |
-| `$(pltech-kumatimer:ppt_media_state)`                      | `PLAYING` or `IDLE`; empty when no show                                              |
-| `$(pltech-kumatimer:ppt_media_remaining)`                  | Time left on the playing clip, `MM:SS`; empty when idle                              |
-| `$(pltech-kumatimer:time_glide_active)` `time_jump_active` | `true` while a Time Glide / Time Jump is running                                     |
-| `$(pltech-kumatimer:timer_full)`                           | The whole display text on one button, including frames when shown (e.g. `05:23:12`)  |
-| `$(pltech-kumatimer:ltc_timecode)`                         | Incoming LTC timecode `HH:MM:SS:FF`; empty when there is no signal                   |
-| `$(pltech-kumatimer:ltc_generator_timecode)`               | LTC Generator output position `HH:MM:SS:FF`; empty when the generator is not running |
-| `$(pltech-kumatimer:dsan_rx_timer)`                        | Timer received from the DSAN Limitimer; empty when there is no signal                |
+| Variable                                                                                      | Description                                                                                                                                   |
+| --------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
+| `$(pltech-kumatimer:timer)`                                                                   | Current time string (e.g. `05:23`)                                                                                                            |
+| `$(pltech-kumatimer:timer_seconds)`                                                           | Remaining seconds as a number                                                                                                                 |
+| `$(pltech-kumatimer:status)`                                                                  | Status: `LIVE`, `PAUSED`, `STANDBY`, or `HIDDEN`                                                                                              |
+| `$(pltech-kumatimer:display_mode)`                                                            | Display mode: `TIMER` or `CLOCK`                                                                                                              |
+| `$(pltech-kumatimer:cue_name)`                                                                | Name of the currently loaded cue / speaker                                                                                                    |
+| `$(pltech-kumatimer:cue_index)`                                                               | Index of the current cue (−1 if none)                                                                                                         |
+| `$(pltech-kumatimer:overtime)`                                                                | `true` if in overtime, otherwise `false`                                                                                                      |
+| `$(pltech-kumatimer:progress)`                                                                | Progress bar value (0–100 %)                                                                                                                  |
+| `$(pltech-kumatimer:sms_active)`                                                              | `true` if a message overlay is active                                                                                                         |
+| `$(pltech-kumatimer:omt_enabled)`                                                             | `true` if OMT output is enabled, otherwise `false`                                                                                            |
+| `$(pltech-kumatimer:omt_active)`                                                              | `true` while the OMT sender is live                                                                                                           |
+| `$(pltech-kumatimer:ltc_generator_enabled)`                                                   | `true` if the LTC Generator is enabled                                                                                                        |
+| `$(pltech-kumatimer:ltc_generator_active)`                                                    | `true` while the LTC Generator transport is live                                                                                              |
+| `$(pltech-kumatimer:ltc_chase_enabled)`                                                       | `true` if Chase to Timecode is enabled                                                                                                        |
+| `$(pltech-kumatimer:ltc_chase_active)`                                                        | `true` while Chase to Timecode is armed and counting to the next cue                                                                          |
+| `$(pltech-kumatimer:dsan_rx_active)`                                                          | `true` while a live DSAN Limitimer RX signal is received                                                                                      |
+| `$(pltech-kumatimer:blackmagic_active)`                                                       | `true` while the Blackmagic output is live                                                                                                    |
+| `$(pltech-kumatimer:timer_hh)` `timer_mm` `timer_ss`                                          | The timer split into hours / minutes / seconds (`00` hours when the format has none)                                                          |
+| `$(pltech-kumatimer:timer_ff)`                                                                | Frames — only in the frame-accurate (`:FR`) formats and in LTC mode, otherwise `--`                                                           |
+| `$(pltech-kumatimer:tcr_source)`                                                              | Selected TCR source: `QLAB`, `MITTI`, `MILLUMIN`, `KUMAPOINT` or `OFF`                                                                        |
+| `$(pltech-kumatimer:tcr_following)`                                                           | `true` while a TCR source is driving the timer                                                                                                |
+| `$(pltech-kumatimer:tcr_line)` `tcr_name`                                                     | The TCR readout (e.g. `00:23`) and the clip/cue name; empty when none                                                                         |
+| `$(pltech-kumatimer:ppt_file)`                                                                | PowerPoint presentation file name; empty when no slide show is running                                                                        |
+| `$(pltech-kumatimer:ppt_slide)` `ppt_slide_total`                                             | Current slide and deck size (`4` and `13`); `0` when no show                                                                                  |
+| `$(pltech-kumatimer:ppt_builds_remaining)`                                                    | Animation builds still ahead on the current slide                                                                                             |
+| `$(pltech-kumatimer:ppt_media_state)`                                                         | `PLAYING` or `IDLE`; empty when no show                                                                                                       |
+| `$(pltech-kumatimer:ppt_media_remaining)`                                                     | Time left on the playing clip, `MM:SS`; empty when idle                                                                                       |
+| `$(pltech-kumatimer:tcr_active_source)`                                                       | Source whose TCR line is shown now (`QLAB`, `MITTI`, `MILLUMIN`, `KUMAPOINT`); empty when none                                                |
+| `$(pltech-kumatimer:tcr_qlab_line)` `tcr_mitti_line` `tcr_millumin_line` `tcr_kumapoint_line` | Each source's own TCR readout when several are followed at once; `_active` = `true`/`false`                                                   |
+| `$(pltech-kumatimer:tcr_kumapoint2_line)` (`2`-`4`)                                           | PowerPoint groups 2-4 (GFX 2 ...); a group is a primary machine plus its mirrored backup                                                      |
+| `$(pltech-kumatimer:kp_group1_active_input)` (`1`-`4`)                                        | Machine on air in the group; `kp_group1_using_backup` is `true` while the BACKUP is; `kp_group1_diverge_s` the primary/backup time difference |
+| `$(pltech-kumatimer:kp_input1_name)` `kp_input1_state` (`1`-`4`)                              | Presenter machine name and `PLAYING 00:23` / `IDLE` / `NO SIGNAL`                                                                             |
+| `$(pltech-kumatimer:kp_backup_active)` `kp_diverged`                                          | Any BACKUP on air / any primary-vs-backup divergence (`true`/`false`)                                                                         |
+| `$(pltech-kumatimer:time_glide_active)` `time_jump_active`                                    | `true` while a Time Glide / Time Jump is running                                                                                              |
+| `$(pltech-kumatimer:timer_full)`                                                              | The whole display text on one button, including frames when shown (e.g. `05:23:12`)                                                           |
+| `$(pltech-kumatimer:ltc_timecode)`                                                            | Incoming LTC timecode `HH:MM:SS:FF`; empty when there is no signal                                                                            |
+| `$(pltech-kumatimer:ltc_generator_timecode)`                                                  | LTC Generator output position `HH:MM:SS:FF`; empty when the generator is not running                                                          |
+| `$(pltech-kumatimer:dsan_rx_timer)`                                                           | Timer received from the DSAN Limitimer; empty when there is no signal                                                                         |
 
 The last eight are the same states as the feedbacks of the same name, exposed
 as variables so external dashboards (which read variables, not feedbacks) can

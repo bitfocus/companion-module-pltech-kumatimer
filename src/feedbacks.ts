@@ -1,5 +1,6 @@
 import { combineRgb, type CompanionFeedbackDefinitions } from '@companion-module/base'
 import type { KumaApiStatus } from './types.js'
+import { KP_SLOTS, TCR_LANE_CHOICES, TCR_LANES, groupStatus, inputState, laneLineActive, type TcrLane } from './tcr.js'
 
 export function setupFeedbacks(lastStatus: () => KumaApiStatus): CompanionFeedbackDefinitions {
 	return {
@@ -146,6 +147,125 @@ export function setupFeedbacks(lastStatus: () => KumaApiStatus): CompanionFeedba
 			],
 			callback: (feedback: { options: Record<string, unknown> }) =>
 				String(lastStatus().tcr_source ?? 'off').toLowerCase() === String(feedback.options['source']),
+		},
+
+		// ─── Multi-source TCR + KumaPoint presenter machines (host 13 Oct 2026) ───
+		tcr_lane_active: {
+			name: 'TCR: this source has a line up',
+			type: 'boolean',
+			defaultStyle: { bgcolor: combineRgb(0, 150, 90), color: combineRgb(255, 255, 255) },
+			options: [
+				{
+					type: 'dropdown',
+					id: 'lane',
+					label: 'Source',
+					default: 'kumapoint',
+					choices: TCR_LANE_CHOICES,
+				},
+			],
+			callback: (feedback: { options: Record<string, unknown> }) => {
+				const lane = String(feedback.options['lane'])
+				return (TCR_LANES as readonly string[]).includes(lane) && laneLineActive(lastStatus(), lane as TcrLane)
+			},
+		},
+		tcr_active_source_is: {
+			name: 'TCR: the line shown now belongs to …',
+			type: 'boolean',
+			defaultStyle: { bgcolor: combineRgb(0, 90, 60), color: combineRgb(255, 255, 255) },
+			options: [
+				{
+					type: 'dropdown',
+					id: 'source',
+					label: 'Source',
+					default: 'qlab',
+					choices: [
+						{ id: 'qlab', label: 'QLab' },
+						{ id: 'mitti', label: 'Mitti' },
+						{ id: 'millumin', label: 'Millumin' },
+						{ id: 'kumapoint', label: 'PowerPoint (any group)' },
+					],
+				},
+			],
+			// Lanes kumapoint2..4 are PowerPoint groups too, so match on the prefix.
+			callback: (feedback: { options: Record<string, unknown> }) => {
+				const active = String(lastStatus().tcr_active_source ?? '').toLowerCase()
+				const want = String(feedback.options['source'])
+				return want === 'kumapoint' ? active.startsWith('kumapoint') : active === want
+			},
+		},
+		kp_backup_on_air: {
+			name: 'PowerPoint: a BACKUP machine is on air',
+			type: 'boolean',
+			defaultStyle: { bgcolor: combineRgb(200, 100, 0), color: combineRgb(255, 255, 255) },
+			options: [
+				{
+					type: 'dropdown',
+					id: 'group',
+					label: 'Group',
+					default: '0',
+					choices: [
+						{ id: '0', label: 'Any group' },
+						...Array.from({ length: KP_SLOTS }, (_v, i) => ({ id: String(i + 1), label: `Group ${i + 1}` })),
+					],
+				},
+			],
+			callback: (feedback: { options: Record<string, unknown> }) => {
+				const n = Number(feedback.options['group'])
+				if (!n) return !!lastStatus().kumapoint_backup_active
+				return !!groupStatus(lastStatus(), n)?.using_backup
+			},
+		},
+		kp_diverged: {
+			name: 'PowerPoint: primary and backup disagree on the time left',
+			type: 'boolean',
+			defaultStyle: { bgcolor: combineRgb(200, 0, 0), color: combineRgb(255, 255, 255) },
+			options: [
+				{
+					type: 'dropdown',
+					id: 'group',
+					label: 'Group',
+					default: '0',
+					choices: [
+						{ id: '0', label: 'Any group' },
+						...Array.from({ length: KP_SLOTS }, (_v, i) => ({ id: String(i + 1), label: `Group ${i + 1}` })),
+					],
+				},
+			],
+			callback: (feedback: { options: Record<string, unknown> }) => {
+				const n = Number(feedback.options['group'])
+				if (!n) return !!lastStatus().kumapoint_diverged
+				return !!groupStatus(lastStatus(), n)?.diverged
+			},
+		},
+		kp_machine_state: {
+			name: 'PowerPoint machine: is playing / idle / has NO SIGNAL',
+			type: 'boolean',
+			defaultStyle: { bgcolor: combineRgb(200, 0, 0), color: combineRgb(255, 255, 255) },
+			options: [
+				{
+					type: 'dropdown',
+					id: 'machine',
+					label: 'Machine (row order in Settings)',
+					default: '1',
+					choices: Array.from({ length: KP_SLOTS }, (_v, i) => ({ id: String(i + 1), label: `Machine ${i + 1}` })),
+				},
+				{
+					type: 'dropdown',
+					id: 'state',
+					label: 'State',
+					default: 'NO SIGNAL',
+					choices: [
+						{ id: 'NO SIGNAL', label: 'No signal' },
+						{ id: 'IDLE', label: 'Idle (connected)' },
+						{ id: 'PLAYING', label: 'Playing' },
+					],
+				},
+			],
+			callback: (feedback: { options: Record<string, unknown> }) => {
+				const inp = (lastStatus().kumapoint_inputs ?? [])[Number(feedback.options['machine']) - 1]
+				if (!inp) return false
+				return inputState(inp).startsWith(String(feedback.options['state']))
+			},
 		},
 
 		// ─── Time Glide / Time Jump / display mode / layout ───
