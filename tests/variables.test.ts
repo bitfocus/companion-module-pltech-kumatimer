@@ -7,6 +7,7 @@ import {
 	updateVariables,
 	clearVariables,
 	splitTimer,
+	formatBuildsOf,
 	formatMediaRemaining,
 	formatSlideOf,
 } from '../src/variables.js'
@@ -47,8 +48,8 @@ describe('setupVariables', () => {
 		expect(ids).toContain('qlab_following')
 		expect(ids).toContain('qlab_cue')
 		expect(ids).toContain('qlab_hold')
-		// 44 base (9 + 7 qlab + 8 state flags + 5 timer parts + 3 timecodes + 6 tcr/glide/jump + 6 powerpoint) + 18 preset + 48 cue + 13 layout (1 active + 12 names) = 123, + 39 multi-source TCR / KumaPoint machine / version variables = 162, + 1 combined slide variable (ppt_slide_of) = 163
-		expect(ids).toHaveLength(163)
+		// 44 base (9 + 7 qlab + 8 state flags + 5 timer parts + 3 timecodes + 6 tcr/glide/jump + 6 powerpoint) + 18 preset + 48 cue + 13 layout (1 active + 12 names) = 123, + 39 multi-source TCR / KumaPoint machine / version variables = 162, + 1 combined slide variable (ppt_slide_of) = 163, + 2 builds variables (ppt_builds_total, ppt_builds_of) = 165
+		expect(ids).toHaveLength(165)
 	})
 
 	it('calls clearVariables (setVariableValues) immediately', () => {
@@ -447,6 +448,8 @@ describe('PowerPoint slide-show variables', () => {
 		'ppt_slide',
 		'ppt_slide_total',
 		'ppt_builds_remaining',
+		'ppt_builds_total',
+		'ppt_builds_of',
 		'ppt_media_state',
 		'ppt_media_remaining',
 	] as const
@@ -480,6 +483,8 @@ describe('PowerPoint slide-show variables', () => {
 		expect(v.ppt_slide).toBe('4')
 		expect(v.ppt_slide_total).toBe('13')
 		expect(v.ppt_builds_remaining).toBe('0')
+		expect(v.ppt_builds_total).toBe('3')
+		expect(v.ppt_builds_of).toBe('3/3')
 		expect(v.ppt_media_state).toBe('PLAYING')
 		expect(v.ppt_media_remaining).toBe('15:43')
 	})
@@ -511,7 +516,24 @@ describe('PowerPoint slide-show variables', () => {
 		const set = vi.fn()
 		clearVariables({ setVariableValues: set } as unknown as Parameters<typeof clearVariables>[0])
 		const v = set.mock.calls[0][0] as Record<string, string>
-		expect(v[id]).toBe(id === 'ppt_slide' || id === 'ppt_slide_total' || id === 'ppt_builds_remaining' ? '0' : '')
+		expect(v[id]).toBe(
+			['ppt_slide', 'ppt_slide_total', 'ppt_builds_remaining', 'ppt_builds_total'].includes(id) ? '0' : '',
+		)
+	})
+})
+
+describe('formatBuildsOf', () => {
+	it.each([
+		[3, 5, '2/5'],
+		[5, 5, '0/5'],
+		[0, 5, '5/5'],
+		[0, 0, ''],
+		[undefined, undefined, ''],
+		[9, 5, '0/5'],
+		[NaN, 4, '0/4'],
+		[2, undefined, ''],
+	])('remaining %s of %s -> %j', (rem, total, want) => {
+		expect(formatBuildsOf(rem, total)).toBe(want)
 	})
 })
 

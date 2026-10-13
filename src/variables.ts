@@ -41,6 +41,17 @@ export function formatSlideOf(slide: number | null | undefined, total: number | 
 	return `${Math.floor(slide)}/${Math.floor(total)}`
 }
 
+/** "2/5" for a button label: animation clicks taken of the clicks defined on the slide.
+ * Empty when the slide has no builds (total < 1) or the host sent nothing, so a label
+ * goes blank instead of "0/0". `remaining` is what the host reports ahead of us. */
+export function formatBuildsOf(remaining: number | null | undefined, total: number | null | undefined): string {
+	if (typeof total !== 'number' || !Number.isFinite(total) || total < 1) return ''
+	const t = Math.floor(total)
+	const left =
+		typeof remaining === 'number' && Number.isFinite(remaining) ? Math.min(t, Math.max(0, Math.floor(remaining))) : t
+	return `${t - left}/${t}`
+}
+
 /** Seconds → "MM:SS" ("H:MM:SS" from an hour up) for the PowerPoint media-time
  * variable. Empty string for anything that is not a usable duration — null while
  * nothing is playing, a host that doesn't send the field, NaN, negatives — so a
@@ -150,6 +161,10 @@ export function setupVariables(instance: InstanceBase<KumaTypes>): void {
 			name: 'PowerPoint: slide as "19/115" (just "19" if the deck length is unknown, empty when no show)',
 		},
 		ppt_builds_remaining: { name: 'PowerPoint: animation builds still ahead on this slide' },
+		ppt_builds_total: { name: 'PowerPoint: animation builds defined on this slide (0 = none)' },
+		ppt_builds_of: {
+			name: 'PowerPoint: builds as "2/5" = clicks taken of total (empty when the slide has no builds or no show)',
+		},
 		ppt_media_state: { name: 'PowerPoint: media state, PLAYING or IDLE (empty when no show)' },
 		ppt_media_remaining: { name: 'PowerPoint: playing clip time left, MM:SS (empty when idle)' },
 		time_glide_active: { name: 'Time Glide: a glide is running (true/false)' },
@@ -235,6 +250,8 @@ export function updateVariables(instance: InstanceBase<KumaTypes>, data: KumaApi
 		ppt_slide_total: String(data.ppt?.total ?? 0),
 		ppt_slide_of: formatSlideOf(data.ppt?.slide, data.ppt?.total),
 		ppt_builds_remaining: String(data.ppt?.builds_remaining ?? 0),
+		ppt_builds_total: String(data.ppt?.builds_total ?? 0),
+		ppt_builds_of: formatBuildsOf(data.ppt?.builds_remaining, data.ppt?.builds_total),
 		ppt_media_state: data.ppt ? (data.ppt.media ?? 'idle').toUpperCase() : '',
 		ppt_media_remaining: formatMediaRemaining(data.ppt?.media_remaining),
 		time_glide_active: String(data.warp_active ?? false),
@@ -328,6 +345,8 @@ export function clearVariables(instance: InstanceBase<KumaTypes>): void {
 		ppt_slide: '0',
 		ppt_slide_total: '0',
 		ppt_builds_remaining: '0',
+		ppt_builds_total: '0',
+		ppt_builds_of: '',
 		ppt_media_state: '',
 		ppt_media_remaining: '',
 		time_glide_active: 'false',

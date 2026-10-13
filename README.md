@@ -49,7 +49,7 @@ TCR line shown belongs to…, PowerPoint backup on air, primary/backup diverged,
 "TCR / all sources & PowerPoint machines".
 
 **PowerPoint slide-show variables** (KumaPoint add-in; empty/`0` when no show is running):
-`ppt_file`, `ppt_slide`, `ppt_slide_total`, `ppt_builds_remaining`, `ppt_media_state`
+`ppt_file`, `ppt_slide`, `ppt_slide_total`, `ppt_builds_remaining`, `ppt_builds_total`, `ppt_builds_of` (`2/5`), `ppt_media_state`
 (PLAYING / IDLE), `ppt_media_remaining` (`MM:SS`)
 
 **Timer parts and timecode variables:** `timer_hh`, `timer_mm`, `timer_ss`, `timer_ff`, `timer_full`;
