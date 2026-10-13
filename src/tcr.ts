@@ -1,5 +1,6 @@
 import type { CompanionVariableDefinitions, CompanionVariableValues } from '@companion-module/base'
 import type { KumaApiStatus } from './types.js'
+import { MODULE_VERSION } from './version.js'
 
 /**
  * Multi-source TCR and KumaPoint presenter machines (host: 13 Oct 2026).
@@ -85,6 +86,8 @@ export function groupStatus(
 
 export function tcrVariableDefinitions(): CompanionVariableDefinitions {
 	const d: CompanionVariableDefinitions = {
+		module_version: { name: 'KUMA Timer module version (Companion shows DEV for developer modules)' },
+		host_version: { name: 'KUMA Timer host version (empty on hosts that do not report it)' },
 		tcr_active_source: {
 			name: 'TCR: source whose line is shown now (QLAB / MITTI / MILLUMIN / KUMAPOINT, empty when none)',
 		},
@@ -111,6 +114,8 @@ export function tcrVariableDefinitions(): CompanionVariableDefinitions {
 
 export function tcrVariableValues(data: KumaApiStatus): CompanionVariableValues {
 	const v: CompanionVariableValues = {
+		module_version: MODULE_VERSION,
+		host_version: data.app_version ?? '',
 		tcr_active_source: (data.tcr_active_source ?? '').toUpperCase(),
 		kp_backup_active: String(data.kumapoint_backup_active ?? false),
 		kp_diverged: String(data.kumapoint_diverged ?? false),

@@ -127,9 +127,9 @@ describe('lane helpers', () => {
 })
 
 describe('variables', () => {
-	it('defines 37 variables and every value key is defined', () => {
+	it('defines 39 variables and every value key is defined', () => {
 		const defs = Object.keys(tcrVariableDefinitions())
-		expect(defs).toHaveLength(37)
+		expect(defs).toHaveLength(39)
 		for (const k of Object.keys(tcrVariableValues(SHOW))) expect(defs).toContain(k)
 		for (const k of Object.keys(tcrVariableDefaults())) expect(defs).toContain(k)
 	})

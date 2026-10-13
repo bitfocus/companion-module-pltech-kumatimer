@@ -40,8 +40,8 @@ describe('setupVariables', () => {
 		expect(ids).toContain('qlab_following')
 		expect(ids).toContain('qlab_cue')
 		expect(ids).toContain('qlab_hold')
-		// 44 base (9 + 7 qlab + 8 state flags + 5 timer parts + 3 timecodes + 6 tcr/glide/jump + 6 powerpoint) + 18 preset + 48 cue + 13 layout (1 active + 12 names) = 123, + 37 multi-source TCR / KumaPoint machine variables = 160
-		expect(ids).toHaveLength(160)
+		// 44 base (9 + 7 qlab + 8 state flags + 5 timer parts + 3 timecodes + 6 tcr/glide/jump + 6 powerpoint) + 18 preset + 48 cue + 13 layout (1 active + 12 names) = 123, + 39 multi-source TCR / KumaPoint machine / version variables = 162
+		expect(ids).toHaveLength(162)
 	})
 
 	it('calls clearVariables (setVariableValues) immediately', () => {

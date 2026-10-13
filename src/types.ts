@@ -65,6 +65,7 @@ export interface KumaApiStatus {
 	// Multi-source TCR (host 13 Oct 2026): several sources can be followed at once and each has
 	// its own line (tcr_<qlab|mitti|millumin|kumapoint[2-4]>_line / _line_active / _line_color).
 	tcr_active_source?: string // the source whose line is shown now ('' when none)
+	app_version?: string // KUMA host version (host 13 Oct 2026+; older hosts omit it)
 	tcr_qlab_line?: string
 	tcr_qlab_line_active?: boolean
 	tcr_qlab_line_color?: string

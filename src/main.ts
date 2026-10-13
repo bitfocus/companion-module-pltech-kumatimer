@@ -1,3 +1,4 @@
+import { MODULE_VERSION } from './version.js'
 import { InstanceBase, InstanceStatus, createModuleLogger, type SomeCompanionConfigField } from '@companion-module/base'
 import { configFields } from './config.js'
 import { type KumaApiStatus, type KumaConfig, type KumaTypes } from './types.js'
@@ -22,6 +23,7 @@ class KumaTimerInstance extends InstanceBase<KumaTypes> {
 
 	async init(config: KumaConfig, _isFirstInit: boolean, _secrets: undefined): Promise<void> {
 		this.config = config
+		this.log('info', `KUMA Timer module ${MODULE_VERSION} starting`)
 		this.setActionDefinitions(
 			setupActions(
 				async (action, params) => this.sendCommand(action, params),
