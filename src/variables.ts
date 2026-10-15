@@ -8,6 +8,9 @@ import { tcrVariableDefinitions, tcrVariableValues, tcrVariableDefaults } from '
 // who need more can request a bump or we add a "current cue" pointer
 // pattern in a future revision.
 const PRESET_SLOTS = 6
+/** Display names of the opening-animation looks (host ids: neon, roll, glitch). */
+export const OPENER_LOOK_NAMES: Record<string, string> = { neon: 'NEON', roll: 'FLIP', glitch: 'GLITCH' }
+
 export const CUE_SLOTS = 12
 const LAYOUT_SLOTS = 12
 
@@ -146,6 +149,9 @@ export function setupVariables(instance: InstanceBase<KumaTypes>): void {
 		dsan_rx_active: { name: 'DSAN Limitimer: live RX signal (true/false)' },
 		blackmagic_active: { name: 'Blackmagic: output is live (true/false)' },
 		blink_overtime: { name: 'Overtime blink switch: on (true/false, host v1.21.0+)' },
+		opener_active: { name: 'Opening animation: on the outputs now (true/false)' },
+		opener_look: { name: 'Opening animation: selected look id (neon/roll/glitch)' },
+		opener_look_name: { name: 'Opening animation: selected look name (NEON/FLIP/GLITCH)' },
 		// Source-neutral TCR (QLab / Mitti / Millumin / KumaPoint) and Time Glide /
 		// Jump. Booleans share their id with the feedback of the same name.
 		tcr_source: { name: 'TCR source: QLAB / MITTI / MILLUMIN / KUMAPOINT / OFF' },
@@ -247,6 +253,9 @@ export function updateVariables(instance: InstanceBase<KumaTypes>, data: KumaApi
 		dsan_rx_active: String(data.dsan_rx_active ?? false),
 		blackmagic_active: String(data.blackmagic_active ?? false),
 		blink_overtime: String(data.blink_overtime ?? true),
+		opener_active: String(data.opener_active ?? false),
+		opener_look: data.opener_look ?? 'neon',
+		opener_look_name: OPENER_LOOK_NAMES[data.opener_look ?? 'neon'] ?? String(data.opener_look ?? 'neon').toUpperCase(),
 		// Older hosts only know the legacy qlab_following flag, which is already
 		// source-neutral on any host that has the tcr_* fields.
 		tcr_source: (data.tcr_source ?? 'off').toUpperCase(),
@@ -348,6 +357,9 @@ export function clearVariables(instance: InstanceBase<KumaTypes>): void {
 		dsan_rx_active: 'false',
 		blackmagic_active: 'false',
 		blink_overtime: 'true',
+		opener_active: 'false',
+		opener_look: 'neon',
+		opener_look_name: 'NEON',
 		tcr_source: 'OFF',
 		tcr_following: 'false',
 		tcr_line: '',

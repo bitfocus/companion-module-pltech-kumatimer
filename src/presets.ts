@@ -572,12 +572,55 @@ export function setupPresets(cues: string[] = [], presetValues: number[] = []): 
 		tcrLaneIds.push(id)
 	}
 
+	// Opening animation (animated countdown intro): one on/off button and a button per look
+	const openerIds: CompanionPresetReference[] = []
+	presets['opener_toggle'] = {
+		type: 'simple',
+		name: 'Opening animation: on / off',
+		style: { text: 'OPENING\nOFF', size: '14', color: WHITE, bgcolor: GREY },
+		steps: [{ down: [{ actionId: 'opener_enable', options: { mode: 'toggle' } }], up: [] }],
+		feedbacks: [
+			{
+				feedbackId: 'opener_active',
+				options: {},
+				style: { text: 'OPENING\nON AIR', color: WHITE, bgcolor: combineRgb(160, 60, 200) },
+			},
+		],
+	}
+	openerIds.push('opener_toggle')
+	for (const [look, label] of [
+		['neon', 'NEON'],
+		['roll', 'FLIP'],
+		['glitch', 'GLITCH'],
+	] as const) {
+		const id = `opener_look_${look}`
+		presets[id] = {
+			type: 'simple',
+			name: `Opening animation: ${label} look`,
+			style: { text: label, size: '18', color: WHITE, bgcolor: BLACK },
+			steps: [{ down: [{ actionId: 'opener_look', options: { look } }], up: [] }],
+			feedbacks: [
+				{ feedbackId: 'opener_look_is', options: { look }, style: { color: WHITE, bgcolor: combineRgb(0, 120, 200) } },
+			],
+		}
+		openerIds.push(id)
+	}
+	presets['opener_look_next'] = {
+		type: 'simple',
+		name: 'Opening animation: next look',
+		style: { text: 'LOOK\n$(pltech-kumatimer:opener_look_name)', size: '14', color: WHITE, bgcolor: BLACK },
+		steps: [{ down: [{ actionId: 'opener_look', options: { look: 'next' } }], up: [] }],
+		feedbacks: [],
+	}
+	openerIds.push('opener_look_next')
+
 	const structure: CompanionPresetSection[] = [
 		{ id: 'transport', name: 'Transport', definitions: transportIds },
 		{ id: 'presets', name: 'Presets', definitions: presetIds },
 		{ id: 'cues', name: 'Cues', definitions: cueIds },
 		{ id: 'qlab', name: 'TCR / QLab', definitions: qlabIds },
 		{ id: 'tcr_sources', name: 'TCR / all sources & PowerPoint machines', definitions: tcrLaneIds },
+		{ id: 'opener', name: 'Opening animation', definitions: openerIds },
 		{ id: 'info', name: 'Info', definitions: infoIds },
 		{ id: 'sms', name: 'SMS', definitions: smsIds },
 	]

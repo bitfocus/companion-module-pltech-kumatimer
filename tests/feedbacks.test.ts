@@ -177,7 +177,7 @@ describe('setupFeedbacks', () => {
 		}
 	})
 
-	it('exposes all 33 feedbacks', () => {
+	it('exposes all 35 feedbacks', () => {
 		const f = setupFeedbacks(() => ({}))
 		const ids = Object.keys(f)
 		expect(ids).toContain('is_live')
@@ -202,6 +202,8 @@ describe('setupFeedbacks', () => {
 		expect(ids).toContain('ltc_chase_active')
 		expect(ids).toContain('dsan_rx_active')
 		expect(ids).toContain('blackmagic_active')
+		expect(ids).toContain('opener_active')
+		expect(ids).toContain('opener_look_is')
 		for (const id of [
 			'tcr_following',
 			'tcr_source_is',
@@ -212,7 +214,7 @@ describe('setupFeedbacks', () => {
 		])
 			expect(ids).toContain(id)
 		expect(ids).toContain('blink_overtime_on')
-		expect(ids).toHaveLength(34)
+		expect(ids).toHaveLength(36)
 	})
 
 	it('uses latest status snapshot on every call', () => {

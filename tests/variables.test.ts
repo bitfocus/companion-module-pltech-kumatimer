@@ -48,8 +48,8 @@ describe('setupVariables', () => {
 		expect(ids).toContain('qlab_following')
 		expect(ids).toContain('qlab_cue')
 		expect(ids).toContain('qlab_hold')
-		// 44 base (9 + 7 qlab + 8 state flags + 5 timer parts + 3 timecodes + 6 tcr/glide/jump + 6 powerpoint) + 18 preset + 48 cue + 13 layout (1 active + 12 names) = 123, + 39 multi-source TCR / KumaPoint machine / version variables = 162, + 1 combined slide variable (ppt_slide_of) = 163, + 2 builds variables (ppt_builds_total, ppt_builds_of) = 165, + 2 speaker-notes variables (ppt_notes, ppt_notes_next) = 167, + 1 overtime-blink switch (blink_overtime) = 168
-		expect(ids).toHaveLength(168)
+		// 44 base (9 + 7 qlab + 8 state flags + 5 timer parts + 3 timecodes + 6 tcr/glide/jump + 6 powerpoint) + 18 preset + 48 cue + 13 layout (1 active + 12 names) = 123, + 39 multi-source TCR / KumaPoint machine / version variables = 162, + 1 combined slide variable (ppt_slide_of) = 163, + 2 builds variables (ppt_builds_total, ppt_builds_of) = 165, + 2 speaker-notes variables (ppt_notes, ppt_notes_next) = 167, + 1 overtime-blink switch (blink_overtime) = 168, + 3 opening-animation variables (opener_active, opener_look, opener_look_name) = 171
+		expect(ids).toHaveLength(171)
 	})
 
 	it('calls clearVariables (setVariableValues) immediately', () => {

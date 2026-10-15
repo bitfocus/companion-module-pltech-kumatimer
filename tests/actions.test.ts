@@ -17,7 +17,7 @@ function getCallbackAndMock(id: string): {
 }
 
 describe('setupActions', () => {
-	it('exposes all 32 actions', () => {
+	it('exposes all 34 actions', () => {
 		const { sendCommand } = getCallbackAndMock('start')
 		const actions = setupActions(sendCommand)
 		const ids = Object.keys(actions)
@@ -51,12 +51,14 @@ describe('setupActions', () => {
 			'ltc_chase_enable',
 			'blackmagic_enable',
 			'blink_overtime',
+			'opener_enable',
+			'opener_look',
 			'warp_time',
 			'warp_duration',
 			'cancel_warp',
 			'cancel_jump',
 		]
-		expect(ids).toHaveLength(33)
+		expect(ids).toHaveLength(35)
 		for (const id of expected) expect(ids).toContain(id)
 	})
 
@@ -331,6 +333,47 @@ describe('Time Glide / Time Jump actions (v2.5.0)', () => {
 			['minutes', 0, 59],
 			['seconds', 0, 59],
 		])
+	})
+})
+
+describe('opening animation actions', () => {
+	const run = async (id: string, options: Record<string, unknown>, status: Record<string, unknown> = {}) => {
+		const sendCommand = vi.fn().mockResolvedValue(undefined)
+		const actions = setupActions(sendCommand, () => status)
+		const action = actions[id] as { callback: (a: { options: Record<string, unknown> }) => Promise<void> }
+		await action.callback({ options })
+		return sendCommand
+	}
+
+	it('on / off send set_opener with the state', async () => {
+		expect(await run('opener_enable', { mode: 'on' })).toHaveBeenCalledWith('set_opener', { on: true })
+		expect(await run('opener_enable', { mode: 'off' })).toHaveBeenCalledWith('set_opener', { on: false })
+	})
+
+	it('toggle reads what is on the outputs now (opener_active)', async () => {
+		expect(await run('opener_enable', { mode: 'toggle' }, { opener_active: true })).toHaveBeenCalledWith('set_opener', {
+			on: false,
+		})
+		expect(await run('opener_enable', { mode: 'toggle' }, { opener_active: false })).toHaveBeenCalledWith(
+			'set_opener',
+			{ on: true },
+		)
+	})
+
+	it('toggle reads what is on the outputs now (opener_active)', async () => {
+		expect(await run('opener_enable', { mode: 'toggle' }, { opener_active: true })).toHaveBeenCalledWith('set_opener', {
+			on: false,
+		})
+		expect(await run('opener_enable', { mode: 'toggle' }, { opener_active: false })).toHaveBeenCalledWith(
+			'set_opener',
+			{ on: true },
+		)
+	})
+
+	it('look action sends the chosen look, or next / prev', async () => {
+		expect(await run('opener_look', { look: 'glitch' })).toHaveBeenCalledWith('set_opener', { look: 'glitch' })
+		expect(await run('opener_look', { look: 'next' })).toHaveBeenCalledWith('set_opener', { look: 'next' })
+		expect(await run('opener_look', { look: 'prev' })).toHaveBeenCalledWith('set_opener', { look: 'prev' })
 	})
 })
 

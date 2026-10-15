@@ -159,4 +159,8 @@ export interface KumaApiStatus {
 	blackmagic_active?: boolean
 	// Overtime blink switch (host BLINK button = Settings > Display > Blink the clock during overtime). Host v1.21.0+; absent on older hosts = on.
 	blink_overtime?: boolean
+	// Event opener (animated countdown, host v1.20.2+): what the outputs show right now (a loaded cue with
+	// OPENING ANIMATION, or the switch) and which look is selected (neon | roll | glitch).
+	opener_active?: boolean
+	opener_look?: string
 }

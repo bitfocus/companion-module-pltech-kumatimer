@@ -423,5 +423,34 @@ export function setupFeedbacks(lastStatus: () => KumaApiStatus): CompanionFeedba
 			options: [],
 			callback: () => lastStatus().blink_overtime ?? true,
 		},
+
+		// ─── Opening animation (animated countdown) ───
+		opener_active: {
+			name: 'Opening animation: on the outputs now',
+			type: 'boolean',
+			defaultStyle: { bgcolor: combineRgb(160, 60, 200), color: combineRgb(255, 255, 255) },
+			options: [],
+			callback: () => !!lastStatus().opener_active,
+		},
+		opener_look_is: {
+			name: 'Opening animation: this look is selected',
+			type: 'boolean',
+			defaultStyle: { bgcolor: combineRgb(0, 120, 200), color: combineRgb(255, 255, 255) },
+			options: [
+				{
+					type: 'dropdown' as const,
+					id: 'look',
+					label: 'Look',
+					default: 'neon',
+					choices: [
+						{ id: 'neon', label: 'Neon' },
+						{ id: 'roll', label: 'Flip (gold tiles)' },
+						{ id: 'glitch', label: 'Glitch' },
+					],
+				},
+			],
+			callback: (feedback: { options: Record<string, unknown> }) =>
+				String(lastStatus().opener_look ?? 'neon') === String(feedback.options['look']),
+		},
 	}
 }

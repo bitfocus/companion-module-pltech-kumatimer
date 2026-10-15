@@ -423,5 +423,40 @@ export function setupActions(
 				return sendCommand('blackmagic_enable', { on })
 			},
 		},
+
+		opener_enable: {
+			// Opening animation (animated countdown) on every output right now. Behaves like loading a cue with
+			// OPENING ANIMATION: it holds until the next cue, preset, SET or RESET. Toggle reads what is on air.
+			name: 'Opening Animation On / Off',
+			options: [onOffToggle],
+			callback: async (action: { options: Record<string, unknown> }) => {
+				const on = resolveOnState(action.options['mode'], !!getStatus().opener_active)
+				return sendCommand('set_opener', { on })
+			},
+		},
+
+		opener_look: {
+			name: 'Opening Animation: Choose Look',
+			options: [
+				{
+					type: 'dropdown' as const,
+					id: 'look',
+					label: 'Look',
+					default: 'next',
+					choices: [
+						{ id: 'next', label: 'Next look' },
+						{ id: 'prev', label: 'Previous look' },
+						{ id: 'neon', label: 'Neon' },
+						{ id: 'roll', label: 'Flip (gold tiles)' },
+						{ id: 'glitch', label: 'Glitch' },
+					],
+				},
+			],
+			callback: async (action: { options: Record<string, unknown> }) => {
+				return sendCommand('set_opener', {
+					look: typeof action.options['look'] === 'string' ? action.options['look'] : 'next',
+				})
+			},
+		},
 	}
 }

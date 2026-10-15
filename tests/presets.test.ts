@@ -250,6 +250,7 @@ describe('setupPresets', () => {
 				'cues',
 				'qlab',
 				'tcr_sources',
+				'opener',
 				'info',
 				'sms',
 			])
@@ -356,6 +357,15 @@ describe('mode / Glide / Jump / TCR presets (v2.5.0)', () => {
 	})
 
 	it('keeps the section ids (saved layouts depend on them)', () => {
-		expect(p.structure.map((s) => s.id)).toEqual(['transport', 'presets', 'cues', 'qlab', 'tcr_sources', 'info', 'sms'])
+		expect(p.structure.map((s) => s.id)).toEqual([
+			'transport',
+			'presets',
+			'cues',
+			'qlab',
+			'tcr_sources',
+			'opener',
+			'info',
+			'sms',
+		])
 	})
 })
