@@ -584,3 +584,15 @@ describe('formatSlideOf', () => {
 		expect(formatSlideOf(slide, total)).toBe(expected)
 	})
 })
+
+describe('variable names other projects read (family contract)', () => {
+	it('keeps timer, progress, status, cue_name and the ppt_* / tcr_* families (Dashboard presets read them)', () => {
+		const instance = makeMockInstance()
+		setupVariables(instance)
+		const mock = (instance as unknown as { setVariableDefinitions: ReturnType<typeof vi.fn> }).setVariableDefinitions
+		const ids = Object.keys(mock.mock.calls[0][0] as Record<string, unknown>)
+		for (const id of ['timer', 'progress', 'status', 'cue_name']) expect(ids).toContain(id)
+		expect(ids.filter((i) => i.startsWith('ppt_')).length).toBeGreaterThan(0)
+		expect(ids.filter((i) => i.startsWith('tcr_')).length).toBeGreaterThan(0)
+	})
+})
