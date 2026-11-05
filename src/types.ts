@@ -121,6 +121,8 @@ export interface KumaApiStatus {
 		total?: number // slides in the deck
 		builds_remaining?: number // animation clicks still ahead on this slide
 		builds_total?: number // animation clicks defined on this slide
+		notes?: string // speaker notes of the slide on screen (only when the add-in has send_notes=1)
+		notes_next?: string // speaker notes of the next non-hidden slide
 		media?: string // 'playing' | 'idle'
 		media_remaining?: number | null // seconds left on the playing clip, else null
 	}

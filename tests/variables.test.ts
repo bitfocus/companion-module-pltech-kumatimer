@@ -48,8 +48,8 @@ describe('setupVariables', () => {
 		expect(ids).toContain('qlab_following')
 		expect(ids).toContain('qlab_cue')
 		expect(ids).toContain('qlab_hold')
-		// 44 base (9 + 7 qlab + 8 state flags + 5 timer parts + 3 timecodes + 6 tcr/glide/jump + 6 powerpoint) + 18 preset + 48 cue + 13 layout (1 active + 12 names) = 123, + 39 multi-source TCR / KumaPoint machine / version variables = 162, + 1 combined slide variable (ppt_slide_of) = 163, + 2 builds variables (ppt_builds_total, ppt_builds_of) = 165
-		expect(ids).toHaveLength(165)
+		// 44 base (9 + 7 qlab + 8 state flags + 5 timer parts + 3 timecodes + 6 tcr/glide/jump + 6 powerpoint) + 18 preset + 48 cue + 13 layout (1 active + 12 names) = 123, + 39 multi-source TCR / KumaPoint machine / version variables = 162, + 1 combined slide variable (ppt_slide_of) = 163, + 2 builds variables (ppt_builds_total, ppt_builds_of) = 165, + 2 speaker-notes variables (ppt_notes, ppt_notes_next) = 167
+		expect(ids).toHaveLength(167)
 	})
 
 	it('calls clearVariables (setVariableValues) immediately', () => {
@@ -450,6 +450,8 @@ describe('PowerPoint slide-show variables', () => {
 		'ppt_builds_remaining',
 		'ppt_builds_total',
 		'ppt_builds_of',
+		'ppt_notes',
+		'ppt_notes_next',
 		'ppt_media_state',
 		'ppt_media_remaining',
 	] as const
@@ -504,6 +506,15 @@ describe('PowerPoint slide-show variables', () => {
 		for (const id of IDS) expect(v[id]).not.toMatch(/undefined|NaN/)
 		expect(v.ppt_media_state).toBe('IDLE')
 		expect(v.ppt_media_remaining).toBe('')
+	})
+
+	it('maps speaker notes (multi-line, Polish letters) and leaves them empty when absent', () => {
+		const v = run({ ppt: { file: 'a.pptx', notes: 'Powitanie\nZażółć gęślą', notes_next: 'Next' } } as KumaApiStatus)
+		expect(v.ppt_notes).toBe('Powitanie\nZażółć gęślą')
+		expect(v.ppt_notes_next).toBe('Next')
+		const w = run({ ppt: { file: 'a.pptx' } } as KumaApiStatus)
+		expect(w.ppt_notes).toBe('')
+		expect(w.ppt_notes_next).toBe('')
 	})
 
 	it('media_remaining is blank while idle (null from the host)', () => {

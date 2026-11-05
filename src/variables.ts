@@ -165,6 +165,12 @@ export function setupVariables(instance: InstanceBase<KumaTypes>): void {
 		ppt_builds_of: {
 			name: 'PowerPoint: builds as "2/5" = clicks taken of total (empty when the slide has no builds or no show)',
 		},
+		ppt_notes: {
+			name: 'PowerPoint: speaker notes of the current slide (empty when no show or notes are off in the add-in)',
+		},
+		ppt_notes_next: {
+			name: 'PowerPoint: speaker notes of the next slide (empty on the last slide, no show or notes off)',
+		},
 		ppt_media_state: { name: 'PowerPoint: media state, PLAYING or IDLE (empty when no show)' },
 		ppt_media_remaining: { name: 'PowerPoint: playing clip time left, MM:SS (empty when idle)' },
 		time_glide_active: { name: 'Time Glide: a glide is running (true/false)' },
@@ -252,6 +258,8 @@ export function updateVariables(instance: InstanceBase<KumaTypes>, data: KumaApi
 		ppt_builds_remaining: String(data.ppt?.builds_remaining ?? 0),
 		ppt_builds_total: String(data.ppt?.builds_total ?? 0),
 		ppt_builds_of: formatBuildsOf(data.ppt?.builds_remaining, data.ppt?.builds_total),
+		ppt_notes: data.ppt?.notes ?? '',
+		ppt_notes_next: data.ppt?.notes_next ?? '',
 		ppt_media_state: data.ppt ? (data.ppt.media ?? 'idle').toUpperCase() : '',
 		ppt_media_remaining: formatMediaRemaining(data.ppt?.media_remaining),
 		time_glide_active: String(data.warp_active ?? false),
@@ -347,6 +355,8 @@ export function clearVariables(instance: InstanceBase<KumaTypes>): void {
 		ppt_builds_remaining: '0',
 		ppt_builds_total: '0',
 		ppt_builds_of: '',
+		ppt_notes: '',
+		ppt_notes_next: '',
 		ppt_media_state: '',
 		ppt_media_remaining: '',
 		time_glide_active: 'false',
