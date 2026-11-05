@@ -211,7 +211,8 @@ describe('setupFeedbacks', () => {
 			'layout_is_active',
 		])
 			expect(ids).toContain(id)
-		expect(ids).toHaveLength(33)
+		expect(ids).toContain('blink_overtime_on')
+		expect(ids).toHaveLength(34)
 	})
 
 	it('uses latest status snapshot on every call', () => {

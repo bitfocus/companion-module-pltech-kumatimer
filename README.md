@@ -33,7 +33,7 @@ DSAN RX active, Blackmagic live.
 
 **State-flag variables** (same ids as the matching feedbacks, `true`/`false`):
 `omt_enabled`, `omt_active`, `ltc_generator_enabled`, `ltc_generator_active`,
-`ltc_chase_enabled`, `ltc_chase_active`, `dsan_rx_active`, `blackmagic_active`,
+`ltc_chase_enabled`, `ltc_chase_active`, `dsan_rx_active`, `blackmagic_active`, `blink_overtime`,
 `tcr_following`, `time_glide_active`, `time_jump_active`
 
 **TCR variables:** `tcr_source` (QLAB / MITTI / MILLUMIN / KUMAPOINT / OFF), `tcr_line`

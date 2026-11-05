@@ -25,28 +25,29 @@ If KUMA Timer is running on the same machine as Companion, use `127.0.0.1`.
 
 ## Available Actions
 
-| Action                                | Description                                                                          |
-| ------------------------------------- | ------------------------------------------------------------------------------------ |
-| Start                                 | Start the countdown timer                                                            |
-| Pause / Resume                        | Pause or resume the timer                                                            |
-| Reset                                 | Stop and reset the timer                                                             |
-| Hide / Show Display                   | Toggle the display window visibility                                                 |
-| +1 Minute                             | Add 60 seconds to remaining time                                                     |
-| -1 Minute                             | Subtract 60 seconds from remaining time                                              |
-| Load Time (seconds)                   | Load a specific duration in seconds                                                  |
-| Load Time (MM:SS)                     | Load a specific duration as minutes + seconds                                        |
-| Load Preset                           | Load one of the 6 quick-access preset times (index 0–5)                              |
-| Load Cue                              | Load a cue from the runsheet by index (0 = first)                                    |
-| Next Cue                              | Advance to the next cue in the list                                                  |
-| Previous Cue                          | Go back to the previous cue in the list                                              |
-| Set Display Mode                      | Switch between TIMER and CLOCK display modes                                         |
-| Send Message (SMS)                    | Display a text message overlay on the timer display                                  |
-| Cancel SMS                            | Remove the active message overlay                                                    |
-| Time Glide: finish at wall-clock time | Stretch/squeeze the timer so it ends exactly at HH:MM:SS today (or tomorrow)         |
-| Time Glide: finish in a set duration  | The same, for a duration from now                                                    |
-| Time Glide: cancel                    | Stop a running Time Glide                                                            |
-| Time Jump: cancel                     | Stop a running Time Jump                                                             |
-| TCR: Visible / Hidden (hold)          | Hide the TCR readout for auditioning — works for QLab, Mitti, Millumin and KumaPoint |
+| Action                                | Description                                                                                                                    |
+| ------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
+| Start                                 | Start the countdown timer                                                                                                      |
+| Pause / Resume                        | Pause or resume the timer                                                                                                      |
+| Reset                                 | Stop and reset the timer                                                                                                       |
+| Hide / Show Display                   | Toggle the display window visibility                                                                                           |
+| Overtime Blink On / Off               | Switch the overtime blink on, off or toggle (same as the BLINK button on the host and Settings → Display; needs host v1.21.0+) |
+| +1 Minute                             | Add 60 seconds to remaining time                                                                                               |
+| -1 Minute                             | Subtract 60 seconds from remaining time                                                                                        |
+| Load Time (seconds)                   | Load a specific duration in seconds                                                                                            |
+| Load Time (MM:SS)                     | Load a specific duration as minutes + seconds                                                                                  |
+| Load Preset                           | Load one of the 6 quick-access preset times (index 0–5)                                                                        |
+| Load Cue                              | Load a cue from the runsheet by index (0 = first)                                                                              |
+| Next Cue                              | Advance to the next cue in the list                                                                                            |
+| Previous Cue                          | Go back to the previous cue in the list                                                                                        |
+| Set Display Mode                      | Switch between TIMER and CLOCK display modes                                                                                   |
+| Send Message (SMS)                    | Display a text message overlay on the timer display                                                                            |
+| Cancel SMS                            | Remove the active message overlay                                                                                              |
+| Time Glide: finish at wall-clock time | Stretch/squeeze the timer so it ends exactly at HH:MM:SS today (or tomorrow)                                                   |
+| Time Glide: finish in a set duration  | The same, for a duration from now                                                                                              |
+| Time Glide: cancel                    | Stop a running Time Glide                                                                                                      |
+| Time Jump: cancel                     | Stop a running Time Jump                                                                                                       |
+| TCR: Visible / Hidden (hold)          | Hide the TCR readout for auditioning — works for QLab, Mitti, Millumin and KumaPoint                                           |
 
 ---
 
@@ -92,6 +93,7 @@ If KUMA Timer is running on the same machine as Companion, use `127.0.0.1`.
 | `$(pltech-kumatimer:ltc_chase_active)`                                                        | `true` while Chase to Timecode is armed and counting to the next cue                                                                                                                                                                    |
 | `$(pltech-kumatimer:dsan_rx_active)`                                                          | `true` while a live DSAN Limitimer RX signal is received                                                                                                                                                                                |
 | `$(pltech-kumatimer:blackmagic_active)`                                                       | `true` while the Blackmagic output is live                                                                                                                                                                                              |
+| `$(pltech-kumatimer:blink_overtime)`                                                          | `true` while the overtime blink is on (feedback `blink_overtime_on`, preset BLINK; host v1.21.0+)                                                                                                                                       |
 | `$(pltech-kumatimer:timer_hh)` `timer_mm` `timer_ss`                                          | The timer split into hours / minutes / seconds (`00` hours when the format has none)                                                                                                                                                    |
 | `$(pltech-kumatimer:timer_ff)`                                                                | Frames — only in the frame-accurate (`:FR`) formats and in LTC mode, otherwise `--`                                                                                                                                                     |
 | `$(pltech-kumatimer:tcr_source)`                                                              | Selected TCR source: `QLAB`, `MITTI`, `MILLUMIN`, `KUMAPOINT` or `OFF`                                                                                                                                                                  |

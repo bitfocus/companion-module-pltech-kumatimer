@@ -50,12 +50,13 @@ describe('setupActions', () => {
 			'ltc_generator_enable',
 			'ltc_chase_enable',
 			'blackmagic_enable',
+			'blink_overtime',
 			'warp_time',
 			'warp_duration',
 			'cancel_warp',
 			'cancel_jump',
 		]
-		expect(ids).toHaveLength(32)
+		expect(ids).toHaveLength(33)
 		for (const id of expected) expect(ids).toContain(id)
 	})
 
@@ -330,5 +331,30 @@ describe('Time Glide / Time Jump actions (v2.5.0)', () => {
 			['minutes', 0, 59],
 			['seconds', 0, 59],
 		])
+	})
+})
+
+describe('overtime blink switch', () => {
+	const run = async (options: Record<string, unknown>, status: Record<string, unknown> = {}) => {
+		const sendCommand = vi.fn().mockResolvedValue(undefined)
+		const actions = setupActions(sendCommand, () => status)
+		const action = actions['blink_overtime'] as { callback: (a: { options: Record<string, unknown> }) => Promise<void> }
+		await action.callback({ options })
+		return sendCommand
+	}
+
+	it('on / off send set_config with the state', async () => {
+		expect(await run({ mode: 'on' })).toHaveBeenCalledWith('set_config', { blink_overtime: true })
+		expect(await run({ mode: 'off' })).toHaveBeenCalledWith('set_config', { blink_overtime: false })
+	})
+
+	it('toggle flips what the host reports, and a host without the field counts as on', async () => {
+		expect(await run({ mode: 'toggle' }, { blink_overtime: true })).toHaveBeenCalledWith('set_config', {
+			blink_overtime: false,
+		})
+		expect(await run({ mode: 'toggle' }, { blink_overtime: false })).toHaveBeenCalledWith('set_config', {
+			blink_overtime: true,
+		})
+		expect(await run({ mode: 'toggle' }, {})).toHaveBeenCalledWith('set_config', { blink_overtime: false })
 	})
 })

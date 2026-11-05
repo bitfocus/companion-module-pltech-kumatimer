@@ -90,6 +90,22 @@ export function setupPresets(cues: string[] = [], presetValues: number[] = []): 
 	}
 	transportIds.push('hide')
 
+	// BLINK: overtime blink on / off (same switch as the BLINK button on the host; host v1.21.0+)
+	presets['blink'] = {
+		type: 'simple',
+		name: 'Overtime blink: on / off',
+		style: { text: 'BLINK\nOFF', size: '14', color: WHITE, bgcolor: GREY },
+		steps: [{ down: [{ actionId: 'blink_overtime', options: { mode: 'toggle' } }], up: [] }],
+		feedbacks: [
+			{
+				feedbackId: 'blink_overtime_on',
+				options: {},
+				style: { text: 'BLINK\nON', color: BLACK, bgcolor: ORANGE },
+			},
+		],
+	}
+	transportIds.push('blink')
+
 	// +1m / -1m
 	presets['add1m'] = {
 		type: 'simple',

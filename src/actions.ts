@@ -398,6 +398,18 @@ export function setupActions(
 			},
 		},
 
+		blink_overtime: {
+			// Same switch as the BLINK button on the host and Settings > Display > "Blink the clock during overtime".
+			// Needs host v1.21.0+ (older hosts refuse the key). Toggle reads the host's current setting; a host that
+			// does not report it counts as on.
+			name: 'Overtime Blink On / Off',
+			options: [onOffToggle],
+			callback: async (action: { options: Record<string, unknown> }) => {
+				const on = resolveOnState(action.options['mode'], getStatus().blink_overtime ?? true)
+				return sendCommand('set_config', { blink_overtime: on })
+			},
+		},
+
 		blackmagic_enable: {
 			// RC2, 17 Sep 2026 (Pawel: "guzik do companion z START i STOP
 			// Blackmagic output... lub toggle") — starts/stops "Live KUMA

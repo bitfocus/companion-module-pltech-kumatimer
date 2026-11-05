@@ -414,5 +414,14 @@ export function setupFeedbacks(lastStatus: () => KumaApiStatus): CompanionFeedba
 			options: [],
 			callback: () => !!lastStatus().blackmagic_active,
 		},
+
+		// ─── Overtime blink switch (host BLINK button, host v1.21.0+) ───
+		blink_overtime_on: {
+			name: 'Overtime blink is on',
+			type: 'boolean',
+			defaultStyle: { bgcolor: combineRgb(220, 140, 0), color: combineRgb(255, 255, 255) },
+			options: [],
+			callback: () => lastStatus().blink_overtime ?? true,
+		},
 	}
 }

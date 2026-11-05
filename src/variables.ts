@@ -145,6 +145,7 @@ export function setupVariables(instance: InstanceBase<KumaTypes>): void {
 		ltc_chase_active: { name: 'Chase to Timecode: armed and counting to next cue (true/false)' },
 		dsan_rx_active: { name: 'DSAN Limitimer: live RX signal (true/false)' },
 		blackmagic_active: { name: 'Blackmagic: output is live (true/false)' },
+		blink_overtime: { name: 'Overtime blink switch: on (true/false, host v1.21.0+)' },
 		// Source-neutral TCR (QLab / Mitti / Millumin / KumaPoint) and Time Glide /
 		// Jump. Booleans share their id with the feedback of the same name.
 		tcr_source: { name: 'TCR source: QLAB / MITTI / MILLUMIN / KUMAPOINT / OFF' },
@@ -245,6 +246,7 @@ export function updateVariables(instance: InstanceBase<KumaTypes>, data: KumaApi
 		ltc_chase_active: String(data.ltc_chase_active ?? false),
 		dsan_rx_active: String(data.dsan_rx_active ?? false),
 		blackmagic_active: String(data.blackmagic_active ?? false),
+		blink_overtime: String(data.blink_overtime ?? true),
 		// Older hosts only know the legacy qlab_following flag, which is already
 		// source-neutral on any host that has the tcr_* fields.
 		tcr_source: (data.tcr_source ?? 'off').toUpperCase(),
@@ -345,6 +347,7 @@ export function clearVariables(instance: InstanceBase<KumaTypes>): void {
 		ltc_chase_active: 'false',
 		dsan_rx_active: 'false',
 		blackmagic_active: 'false',
+		blink_overtime: 'true',
 		tcr_source: 'OFF',
 		tcr_following: 'false',
 		tcr_line: '',

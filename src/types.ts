@@ -157,4 +157,6 @@ export interface KumaApiStatus {
 	// feature with no persisted config flag (unlike omt_enabled etc.), so
 	// there's only one state bit: whether it's actually on air right now.
 	blackmagic_active?: boolean
+	// Overtime blink switch (host BLINK button = Settings > Display > Blink the clock during overtime). Host v1.21.0+; absent on older hosts = on.
+	blink_overtime?: boolean
 }
