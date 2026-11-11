@@ -3,12 +3,14 @@ import {
 	type CompanionPresetDefinitions,
 	type CompanionPresetReference,
 	type CompanionPresetSection,
+	type CompanionSimplePresetDefinition,
 } from '@companion-module/base'
+import type { KumaTypes } from './types.js'
 import { CUE_SLOTS } from './variables.js'
 
 export interface KumaPresets {
 	structure: CompanionPresetSection[]
-	presets: CompanionPresetDefinitions
+	presets: CompanionPresetDefinitions<KumaTypes>
 }
 
 // Why no template consolidation: the v2 template feature injects ONE local
@@ -25,7 +27,7 @@ export function setupPresets(cues: string[] = [], presetValues: number[] = []): 
 	const ORANGE = combineRgb(220, 140, 0)
 	const GREY = combineRgb(80, 80, 80)
 
-	const presets: CompanionPresetDefinitions = {}
+	const presets: CompanionPresetDefinitions<KumaTypes> = {}
 	const transportIds: CompanionPresetReference[] = []
 	const presetIds: CompanionPresetReference[] = []
 	const cueIds: CompanionPresetReference[] = []
@@ -36,7 +38,7 @@ export function setupPresets(cues: string[] = [], presetValues: number[] = []): 
 	presets['start'] = {
 		type: 'simple',
 		name: 'Start',
-		style: { text: 'START', size: '18', color: WHITE, bgcolor: combineRgb(30, 120, 30) },
+		style: { text: 'START', size: '14', color: WHITE, bgcolor: combineRgb(30, 120, 30) },
 		steps: [{ down: [{ actionId: 'start', options: {} }], up: [] }],
 		feedbacks: [
 			{
@@ -62,7 +64,7 @@ export function setupPresets(cues: string[] = [], presetValues: number[] = []): 
 	presets['pause'] = {
 		type: 'simple',
 		name: 'Pause / Resume',
-		style: { text: 'PAUSE', size: '18', color: BLACK, bgcolor: ORANGE },
+		style: { text: 'PAUSE', size: '14', color: BLACK, bgcolor: ORANGE },
 		steps: [{ down: [{ actionId: 'pause', options: {} }], up: [] }],
 		feedbacks: [
 			{
@@ -126,23 +128,28 @@ export function setupPresets(cues: string[] = [], presetValues: number[] = []): 
 	transportIds.push('sub1m')
 
 	// Time Cut "Cut:" total nudge — Glide/Jump panel (Pawel 16 Sep 2026).
-	// Distinct from +1m/-1m above: those load_time-adjust the countdown
+	// Labelled by their effect on the clock (SHORTER = cut one more, GIVE BACK =
+	// undo part of the cut). Distinct from +1m/-1m above: those adjust the countdown
 	// directly; these bump the Time Glide/Stealth Jump "Cut:" total live,
 	// for the "show caller asks for another minute mid-cut" workflow —
 	// see cut_nudge in actions.ts.
 	const cutNudges: Array<{ id: string; label: string; delta: number }> = [
-		{ id: 'cutNudgeAdd1m', label: '+1m', delta: 60 },
-		{ id: 'cutNudgeSub1m', label: '-1m', delta: -60 },
-		{ id: 'cutNudgeAdd1s', label: '+1s', delta: 1 },
-		{ id: 'cutNudgeSub1s', label: '-1s', delta: -1 },
+		{ id: 'cutNudgeAdd1m', label: 'SHORTER\n1m', delta: 60 },
+		{ id: 'cutNudgeSub1m', label: 'GIVE BACK\n1m', delta: -60 },
+		{ id: 'cutNudgeAdd1s', label: 'SHORTER\n1s', delta: 1 },
+		{ id: 'cutNudgeSub1s', label: 'GIVE BACK\n1s', delta: -1 },
 	]
 	for (const { id, label, delta } of cutNudges) {
 		presets[id] = {
 			type: 'simple',
-			name: `Time Cut ${label}`,
-			style: { text: `CUT\n${label}`, size: '14', color: WHITE, bgcolor: combineRgb(120, 70, 0) },
+			name: `Time Cut ${label.replace('\n', ' ')}`,
+			style: { text: label, size: 'auto', color: WHITE, bgcolor: combineRgb(120, 70, 0) },
 			steps: [{ down: [{ actionId: 'cut_nudge', options: { delta_seconds: delta } }], up: [] }],
-			feedbacks: [],
+			// Lights up while a cut is running (the variable time_cut_total shows how much).
+			feedbacks: [
+				{ feedbackId: 'time_glide_active', options: {}, style: { color: WHITE, bgcolor: ORANGE } },
+				{ feedbackId: 'time_jump_active', options: {}, style: { color: WHITE, bgcolor: ORANGE } },
+			],
 		}
 		transportIds.push(id)
 	}
@@ -182,7 +189,7 @@ export function setupPresets(cues: string[] = [], presetValues: number[] = []): 
 	presets['cancel_glide'] = {
 		type: 'simple',
 		name: 'Cancel Time Glide',
-		style: { text: 'CANCEL\nGLIDE', size: '14', color: GREY, bgcolor: BLACK },
+		style: { text: 'CANCEL\nGLIDE', size: 'auto', color: GREY, bgcolor: BLACK },
 		steps: [{ down: [{ actionId: 'cancel_warp', options: {} }], up: [] }],
 		feedbacks: [{ feedbackId: 'time_glide_active', options: {}, style: { color: WHITE, bgcolor: ORANGE } }],
 	}
@@ -191,7 +198,7 @@ export function setupPresets(cues: string[] = [], presetValues: number[] = []): 
 	presets['cancel_jump'] = {
 		type: 'simple',
 		name: 'Cancel Time Jump',
-		style: { text: 'CANCEL\nJUMP', size: '14', color: GREY, bgcolor: BLACK },
+		style: { text: 'CANCEL\nJUMP', size: 'auto', color: GREY, bgcolor: BLACK },
 		steps: [{ down: [{ actionId: 'cancel_jump', options: {} }], up: [] }],
 		feedbacks: [{ feedbackId: 'time_jump_active', options: {}, style: { color: WHITE, bgcolor: ORANGE } }],
 	}
@@ -335,12 +342,12 @@ export function setupPresets(cues: string[] = [], presetValues: number[] = []): 
 		{ feedbackId: 'is_overtime', options: {}, style: { color: WHITE, bgcolor: RED } },
 		{ feedbackId: 'is_hidden', options: {}, style: { color: GREY, bgcolor: BLACK } },
 	]
-	const timerParts: Array<[string, string, string, '24' | '44']> = [
+	const timerParts: Array<[string, string, string, 'auto' | '44']> = [
 		['timer_hh', 'Timer: HH', 'timer_hh', '44'],
 		['timer_mm', 'Timer: MM', 'timer_mm', '44'],
 		['timer_ss', 'Timer: SS', 'timer_ss', '44'],
 		['timer_ff', 'Timer: FF (frames)', 'timer_ff', '44'],
-		['timer_full', 'Timer: whole display on one button', 'timer_full', '24'],
+		['timer_full', 'Timer: whole display on one button', 'timer_full', 'auto'],
 	]
 	for (const [id, name, variable, size] of timerParts) {
 		presets[id] = {
@@ -352,6 +359,85 @@ export function setupPresets(cues: string[] = [], presetValues: number[] = []): 
 		}
 		infoIds.push(id)
 	}
+
+	// Progress bar presets (Companion 5.0+, API 2.1 layered presets with a gauge element).
+	// Each is an "alternatives" group: the layered variant first, a plain timer button as the fallback
+	// for hosts that cannot draw layers. The bar drains with the countdown and is coloured by
+	// timer_bar_color (green, orange at the host warning threshold, red near zero / overtime).
+	const barValue = { isExpression: true, value: '$(pltech-kumatimer:timer_remaining_pct)' } as const
+	// Gauge colour stops do not resolve variables inside the stop rows, so the colour is fixed per gauge
+	// and three gauges (green / orange / red) are stacked; exactly one is enabled by timer_bar_zone.
+	const zones = [
+		['green', 0x3cb450],
+		['orange', 0xf0a028],
+		['red', 0xdc3232],
+	] as const
+	const zoneGauges = (prefix: string, geometry: Record<string, unknown>) =>
+		zones.map(([zone, color]) => ({
+			type: 'gauge' as const,
+			id: `${prefix}_${zone}`,
+			enabled: { isExpression: true as const, value: `$(pltech-kumatimer:timer_bar_zone) == "${zone}"` },
+			min: 0,
+			max: 100,
+			value: barValue,
+			fillEnabled: true,
+			stops: [{ value: 0, color, gradient: false }],
+			trackStyle: 'dimmed' as const,
+			trackAmount: 20,
+			...geometry,
+		}))
+	const timerText = { isExpression: true, value: '$(pltech-kumatimer:timer)' } as const
+	const plainTimer = (): CompanionSimplePresetDefinition<KumaTypes> => ({
+		type: 'simple',
+		name: 'Timer display',
+		style: { text: '$(pltech-kumatimer:timer)', size: '18', color: WHITE, bgcolor: combineRgb(40, 40, 40) },
+		steps: [],
+		feedbacks: timerPartFeedbacks(),
+	})
+	presets['timer_bar'] = {
+		type: 'alternatives',
+		variants: [
+			{
+				type: 'layered',
+				name: 'Timer with progress bar',
+				elements: [
+					{ type: 'box', id: 'bg', x: 0, y: 0, width: 100, height: 100, color: combineRgb(40, 40, 40) },
+					{ type: 'text', id: 'time', x: 0, y: 8, width: 100, height: 55, text: timerText, color: WHITE },
+					...zoneGauges('bar', { x: 8, y: 72, width: 84, height: 16, orientation: 'horizontal' }),
+				],
+				steps: [],
+				feedbacks: [],
+			},
+			plainTimer(),
+		],
+	}
+	infoIds.push('timer_bar')
+	presets['timer_ring'] = {
+		type: 'alternatives',
+		variants: [
+			{
+				type: 'layered',
+				name: 'Timer inside a progress ring',
+				elements: [
+					{ type: 'box', id: 'bg', x: 0, y: 0, width: 100, height: 100, color: combineRgb(40, 40, 40) },
+					...zoneGauges('ring', {
+						x: 4,
+						y: 4,
+						width: 92,
+						height: 92,
+						orientation: 'ring',
+						ringWidth: 12,
+						roundedEnds: true,
+					}),
+					{ type: 'text', id: 'time', x: 12, y: 30, width: 76, height: 40, text: timerText, color: WHITE },
+				],
+				steps: [],
+				feedbacks: [],
+			},
+			plainTimer(),
+		],
+	}
+	infoIds.push('timer_ring')
 
 	// Status display
 	presets['status_display'] = {
@@ -406,7 +492,7 @@ export function setupPresets(cues: string[] = [], presetValues: number[] = []): 
 	presets['cancel_sms'] = {
 		type: 'simple',
 		name: 'Cancel SMS',
-		style: { text: 'CANCEL\nSMS', size: '14', color: WHITE, bgcolor: RED },
+		style: { text: 'CANCEL\nSMS', size: 'auto', color: WHITE, bgcolor: RED },
 		steps: [{ down: [{ actionId: 'cancel_sms', options: {} }], up: [] }],
 		feedbacks: [],
 	}
@@ -421,7 +507,7 @@ export function setupPresets(cues: string[] = [], presetValues: number[] = []): 
 	presets['qlab_hold'] = {
 		type: 'simple',
 		name: 'TCR: Visible / Hidden (hold) — any source',
-		style: { text: 'TCR\nVISIBLE', size: '14', color: WHITE, bgcolor: combineRgb(30, 110, 70) },
+		style: { text: 'TCR\nVISIBLE', size: 'auto', color: WHITE, bgcolor: combineRgb(30, 110, 70) },
 		steps: [{ down: [{ actionId: 'qlab_hold', options: { mode: 'toggle' } }], up: [] }],
 		feedbacks: [{ feedbackId: 'qlab_hold', options: {}, style: { text: 'TCR\nHIDDEN', color: BLACK, bgcolor: AMBER } }],
 	}
@@ -431,7 +517,7 @@ export function setupPresets(cues: string[] = [], presetValues: number[] = []): 
 	presets['qlab_follow'] = {
 		type: 'simple',
 		name: 'QLab: Follow On / Off',
-		style: { text: 'QLAB\nFOLLOW', size: '14', color: WHITE, bgcolor: GREY },
+		style: { text: 'QLAB\nFOLLOW', size: 'auto', color: WHITE, bgcolor: GREY },
 		steps: [{ down: [{ actionId: 'qlab_follow_enable', options: { mode: 'toggle' } }], up: [] }],
 		feedbacks: [
 			{ feedbackId: 'qlab_following', options: {}, style: { text: 'QLAB\n▸ LIVE', color: WHITE, bgcolor: GREEN } },
@@ -457,7 +543,7 @@ export function setupPresets(cues: string[] = [], presetValues: number[] = []): 
 	presets['qlab_triggers'] = {
 		type: 'simple',
 		name: 'QLab: Triggers On / Off',
-		style: { text: 'QLAB\nTRIGGERS', size: '14', color: WHITE, bgcolor: GREY },
+		style: { text: 'QLAB\nTRIGGERS', size: 'auto', color: WHITE, bgcolor: GREY },
 		steps: [{ down: [{ actionId: 'qlab_triggers_enable', options: { mode: 'toggle' } }], up: [] }],
 		feedbacks: [
 			{ feedbackId: 'qlab_triggers_enabled', options: {}, style: { color: WHITE, bgcolor: combineRgb(0, 90, 60) } },
@@ -478,7 +564,7 @@ export function setupPresets(cues: string[] = [], presetValues: number[] = []): 
 	presets['tcr_readout'] = {
 		type: 'simple',
 		name: 'TCR: readout (time remaining of the playing clip)',
-		style: { text: '$(pltech-kumatimer:tcr_line)', size: '24', color: WHITE, bgcolor: BLACK },
+		style: { text: '$(pltech-kumatimer:tcr_line)', size: 'auto', color: WHITE, bgcolor: BLACK },
 		steps: [],
 		feedbacks: [{ feedbackId: 'tcr_following', options: {}, style: { color: WHITE, bgcolor: combineRgb(0, 150, 90) } }],
 	}
@@ -500,7 +586,7 @@ export function setupPresets(cues: string[] = [], presetValues: number[] = []): 
 		presets[id] = {
 			type: 'simple',
 			name: `TCR: ${label} readout (its own line)`,
-			style: { text: `${label}\n$(pltech-kumatimer:tcr_${lane}_line)`, size: '14', color: WHITE, bgcolor: BLACK },
+			style: { text: `${label}\n$(pltech-kumatimer:tcr_${lane}_line)`, size: 'auto', color: WHITE, bgcolor: BLACK },
 			steps: [],
 			feedbacks: [
 				{ feedbackId: 'tcr_lane_active', options: { lane }, style: { color: WHITE, bgcolor: combineRgb(0, 150, 90) } },
@@ -519,7 +605,7 @@ export function setupPresets(cues: string[] = [], presetValues: number[] = []): 
 	presets['kp_backup_on_air'] = {
 		type: 'simple',
 		name: 'PowerPoint: BACKUP ON AIR alarm (any group)',
-		style: { text: 'PPT\nBACKUP OK', size: '14', color: WHITE, bgcolor: GREY },
+		style: { text: 'PPT\nBACKUP OK', size: 'auto', color: WHITE, bgcolor: GREY },
 		steps: [],
 		feedbacks: [
 			{
@@ -551,7 +637,7 @@ export function setupPresets(cues: string[] = [], presetValues: number[] = []): 
 			name: `PowerPoint machine ${n}: name and state`,
 			style: {
 				text: `$(pltech-kumatimer:kp_input${n}_name)\n$(pltech-kumatimer:kp_input${n}_state)`,
-				size: '14',
+				size: 'auto',
 				color: WHITE,
 				bgcolor: BLACK,
 			},
@@ -577,7 +663,7 @@ export function setupPresets(cues: string[] = [], presetValues: number[] = []): 
 	presets['opener_toggle'] = {
 		type: 'simple',
 		name: 'Opening animation: on / off',
-		style: { text: 'OPENING\nOFF', size: '14', color: WHITE, bgcolor: GREY },
+		style: { text: 'OPENING\nOFF', size: 'auto', color: WHITE, bgcolor: GREY },
 		steps: [{ down: [{ actionId: 'opener_enable', options: { mode: 'toggle' } }], up: [] }],
 		feedbacks: [
 			{
@@ -597,7 +683,7 @@ export function setupPresets(cues: string[] = [], presetValues: number[] = []): 
 		presets[id] = {
 			type: 'simple',
 			name: `Opening animation: ${label} look`,
-			style: { text: label, size: '18', color: WHITE, bgcolor: BLACK },
+			style: { text: label, size: 'auto', color: WHITE, bgcolor: BLACK },
 			steps: [{ down: [{ actionId: 'opener_look', options: { look } }], up: [] }],
 			feedbacks: [
 				{ feedbackId: 'opener_look_is', options: { look }, style: { color: WHITE, bgcolor: combineRgb(0, 120, 200) } },

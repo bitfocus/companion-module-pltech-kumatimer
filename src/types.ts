@@ -131,6 +131,10 @@ export interface KumaApiStatus {
 	warp_interval_ms?: number
 	jump_active?: boolean // a Time Jump (stealth cut) is running
 	jump_remaining_cut?: number
+	_remaining_pct?: number // share of the countdown still ahead, 0-100 (1 decimal)
+	color_orange_seconds?: number // host warning threshold: turns orange at this many seconds left
+	color_red_seconds?: number // host warning threshold: turns red at this many seconds left
+	cut_total_seconds?: number // total Time Cut asked for this cycle (host 1.21.1+)
 	time_cut_mode?: string
 	// Layout presets ("Looks") — lightweight {slot, id, name} list + the active
 	// preset id. Recall via the recall_layout action (by slot or name).

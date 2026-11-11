@@ -48,8 +48,8 @@ describe('setupVariables', () => {
 		expect(ids).toContain('qlab_following')
 		expect(ids).toContain('qlab_cue')
 		expect(ids).toContain('qlab_hold')
-		// 44 base (9 + 7 qlab + 8 state flags + 5 timer parts + 3 timecodes + 6 tcr/glide/jump + 6 powerpoint) + 18 preset + 48 cue + 13 layout (1 active + 12 names) = 123, + 39 multi-source TCR / KumaPoint machine / version variables = 162, + 1 combined slide variable (ppt_slide_of) = 163, + 2 builds variables (ppt_builds_total, ppt_builds_of) = 165, + 2 speaker-notes variables (ppt_notes, ppt_notes_next) = 167, + 1 overtime-blink switch (blink_overtime) = 168, + 3 opening-animation variables (opener_active, opener_look, opener_look_name) = 171
-		expect(ids).toHaveLength(171)
+		// 44 base (9 + 7 qlab + 8 state flags + 5 timer parts + 3 timecodes + 6 tcr/glide/jump + 6 powerpoint) + 18 preset + 48 cue + 13 layout (1 active + 12 names) = 123, + 39 multi-source TCR / KumaPoint machine / version variables = 162, + 1 combined slide variable (ppt_slide_of) = 163, + 2 builds variables (ppt_builds_total, ppt_builds_of) = 165, + 2 speaker-notes variables (ppt_notes, ppt_notes_next) = 167, + 1 overtime-blink switch (blink_overtime) = 168, + 3 opening-animation variables (opener_active, opener_look, opener_look_name) = 171, + 1 time-cut total (time_cut_total) = 172, + 2 progress bar variables (timer_remaining_pct, timer_bar_color) = 174, + 1 bar zone (timer_bar_zone) = 175
+		expect(ids).toHaveLength(175)
 	})
 
 	it('calls clearVariables (setVariableValues) immediately', () => {
@@ -415,6 +415,31 @@ describe('TCR / Glide / Jump variables (v2.5.0)', () => {
 		expect(v.tcr_name).toBe('Opening video')
 		expect(run({}).tcr_line).toBe('')
 		expect(run({}).tcr_name).toBe('')
+	})
+
+	it('timer_remaining_pct is a clamped number; timer_bar_color follows the host warning thresholds', () => {
+		expect(run({ _remaining_pct: 69.2 })).toMatchObject({ timer_remaining_pct: 69.2 })
+		expect(run({ _remaining_pct: 140 })).toMatchObject({ timer_remaining_pct: 100 })
+		expect(run({})).toMatchObject({ timer_remaining_pct: 0 })
+		const green = 0x3cb450
+		const orange = 0xf0a028
+		const red = 0xdc3232
+		const live = { status: 'live', color_orange_seconds: 180, color_red_seconds: 60 } as const
+		expect(run({ ...live, timer_seconds: 600 })).toMatchObject({ timer_bar_color: green })
+		expect(run({ ...live, timer_seconds: 120 })).toMatchObject({ timer_bar_color: orange })
+		expect(run({ ...live, timer_seconds: 30 })).toMatchObject({ timer_bar_color: red })
+		expect(run({ status: 'paused', timer_seconds: 600 })).toMatchObject({ timer_bar_color: orange })
+		expect(run({ ...live, timer_seconds: 5, overtime: true })).toMatchObject({ timer_bar_color: red })
+		expect(run({ ...live, timer_seconds: 600 })).toMatchObject({ timer_bar_zone: 'green' })
+		expect(run({ ...live, timer_seconds: 120 })).toMatchObject({ timer_bar_zone: 'orange' })
+		expect(run({ ...live, timer_seconds: 30 })).toMatchObject({ timer_bar_zone: 'red' })
+	})
+
+	it('time_cut_total formats cut_total_seconds as M:SS (0:00 when no cut)', () => {
+		expect(run({})).toMatchObject({ time_cut_total: '0:00' })
+		expect(run({ cut_total_seconds: 60 })).toMatchObject({ time_cut_total: '1:00' })
+		expect(run({ cut_total_seconds: 125 })).toMatchObject({ time_cut_total: '2:05' })
+		expect(run({ cut_total_seconds: -5 })).toMatchObject({ time_cut_total: '0:00' })
 	})
 
 	it('time_glide_active / time_jump_active mirror warp_active / jump_active', () => {

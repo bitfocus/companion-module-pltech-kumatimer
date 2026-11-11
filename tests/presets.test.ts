@@ -56,10 +56,51 @@ describe('setupPresets', () => {
 			}
 		})
 
-		it('all presets use type: "simple" (v2)', () => {
+		it('all presets use type: "simple", except the progress bars which are alternatives with a simple fallback', () => {
 			for (const id of Object.keys(p.presets)) {
+				if (id === 'timer_bar' || id === 'timer_ring') continue
 				expect(btn(p, id).type).toBe('simple')
 			}
+		})
+
+		it('progress bar presets: layered gauge first, plain timer button as the fallback', () => {
+			for (const id of ['timer_bar', 'timer_ring']) {
+				const def = p.presets[id] as unknown as {
+					type: string
+					variants: Array<{
+						type: string
+						elements?: Array<{ type: string; value?: unknown }>
+						style?: { text: string }
+					}>
+				}
+				expect(def.type).toBe('alternatives')
+				expect(def.variants).toHaveLength(2)
+				expect(def.variants[0].type).toBe('layered')
+				const gauges = (def.variants[0].elements ?? []).filter((e) => e.type === 'gauge') as unknown as Array<{
+					value: unknown
+					enabled: { value: string }
+					stops: Array<{ color: unknown }>
+				}>
+				// one gauge per colour zone, each with a fixed colour and enabled by timer_bar_zone
+				expect(gauges).toHaveLength(3)
+				for (const g of gauges) {
+					expect(g.value).toEqual({ isExpression: true, value: '$(pltech-kumatimer:timer_remaining_pct)' })
+					expect(typeof g.stops[0].color).toBe('number')
+				}
+				expect(gauges.map((g) => g.enabled.value)).toEqual([
+					'$(pltech-kumatimer:timer_bar_zone) == "green"',
+					'$(pltech-kumatimer:timer_bar_zone) == "orange"',
+					'$(pltech-kumatimer:timer_bar_zone) == "red"',
+				])
+				expect(def.variants[1].type).toBe('simple')
+				expect(def.variants[1].style?.text).toBe('$(pltech-kumatimer:timer)')
+			}
+		})
+
+		it('progress bar presets are listed in the Info section', () => {
+			const info = p.structure.find((sec) => sec.id === 'info') as unknown as { definitions: unknown[] }
+			expect(JSON.stringify(info.definitions)).toContain('timer_bar')
+			expect(JSON.stringify(info.definitions)).toContain('timer_ring')
 		})
 	})
 

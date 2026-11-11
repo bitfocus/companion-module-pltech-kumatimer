@@ -7,6 +7,7 @@ Control **KUMA Timer** (macOS & Windows professional countdown timer) from Bitfo
 ## Requirements
 
 - KUMA Timer v1.6.3 or later
+- Companion 5.0 or later (this module version uses the Companion 5 module API for the progress-bar buttons; Companion 4.x keeps using module 2.7.x)
 - HTTP API enabled in KUMA Timer settings (Settings → Connections → Enable HTTP API)
 - Default port: **5555**
 
@@ -112,6 +113,8 @@ If KUMA Timer is running on the same machine as Companion, use `127.0.0.1`.
 | `$(pltech-kumatimer:kp_input1_name)` `kp_input1_state` (`1`-`4`)                              | Presenter machine name and `PLAYING 00:23` / `IDLE` / `NO SIGNAL`                                                                                                                                                                       |
 | `$(pltech-kumatimer:kp_backup_active)` `kp_diverged`                                          | Any BACKUP on air / any primary-vs-backup divergence (`true`/`false`)                                                                                                                                                                   |
 | `$(pltech-kumatimer:time_glide_active)` `time_jump_active`                                    | `true` while a Time Glide / Time Jump is running                                                                                                                                                                                        |
+| `$(pltech-kumatimer:time_cut_total)`                                                          | Total Time Cut asked for this countdown as `M:SS` (`0:00` = no cut)                                                                                                                                                                     |
+| `$(pltech-kumatimer:timer_remaining_pct)` `timer_bar_color`                                   | Share of the countdown still ahead (number 0-100) and the bar colour (green, orange at the host warning threshold, red near zero / overtime)                                                                                            |
 | `$(pltech-kumatimer:timer_full)`                                                              | The whole display text on one button, including frames when shown (e.g. `05:23:12`)                                                                                                                                                     |
 | `$(pltech-kumatimer:ltc_timecode)`                                                            | Incoming LTC timecode `HH:MM:SS:FF`; empty when there is no signal                                                                                                                                                                      |
 | `$(pltech-kumatimer:ltc_generator_timecode)`                                                  | LTC Generator output position `HH:MM:SS:FF`; empty when the generator is not running                                                                                                                                                    |
@@ -132,7 +135,8 @@ The module provides ready-made preset buttons in these categories:
 - **Transport** — Start (shows LIVE when running), Stop, Pause/Resume (label & colour change), Hide/Show, +1m, −1m, Timer Mode, Clock Mode
 - **Presets** — 6 quick-load buttons with values from your KUMA Timer config
 - **Cues** — One button per cue in your runsheet (loaded dynamically every 10 s); active cue highlighted in green
-- **Info** — Timer display (colour changes with status), Status display, Current speaker name
+- **Info** — Timer display (colour changes with status), Status display, Current speaker name, and — on Companion 5.0 or later — **Timer with progress bar** and **Timer inside a progress ring** (drain with the countdown; older Companion versions show a plain timer button instead)
+- **Time Cut** — SHORTER 1m / 1s (cut one more) and GIVE BACK 1m / 1s (undo part of the cut); they light up while a cut is running
 - **SMS** — Send and Cancel message overlay buttons
 
 ---

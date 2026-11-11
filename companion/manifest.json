@@ -4,8 +4,8 @@
 	"id": "pltech-kumatimer",
 	"name": "PL Tech: KUMA Timer",
 	"shortname": "KUMA Timer",
-	"description": "Control KUMA Timer via HTTP/JSON \u2014 start, stop, pause, load cues & presets, send messages, live feedbacks and variables",
-	"version": "2.7.0",
+	"description": "Control KUMA Timer via HTTP/JSON — start, stop, pause, load cues & presets, send messages, live feedbacks and variables",
+	"version": "2.8.1",
 	"license": "MIT",
 	"repository": "git+https://github.com/pltech-dev/companion-module-kumatimer.git",
 	"bugs": "https://github.com/pltech-dev/companion-module-kumatimer/issues",
@@ -18,7 +18,7 @@
 	"runtime": {
 		"type": "node22",
 		"api": "nodejs-ipc",
-		"apiVersion": "2.0.4",
+		"apiVersion": "2.1.3",
 		"entrypoint": "../dist/main.js"
 	},
 	"legacyIds": ["kumatimer", "kumatimer-http", "pltech-kumatimer-http"],

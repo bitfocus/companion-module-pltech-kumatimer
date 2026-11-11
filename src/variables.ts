@@ -59,6 +59,44 @@ export function formatBuildsOf(remaining: number | null | undefined, total: numb
  * variable. Empty string for anything that is not a usable duration — null while
  * nothing is playing, a host that doesn't send the field, NaN, negatives — so a
  * button label simply goes blank instead of showing "NaN:NaN" or "-1:-1". */
+const BAR_GREEN = 0x3cb450
+const BAR_ORANGE = 0xf0a028
+const BAR_RED = 0xdc3232
+
+function clampPct(v: number | undefined): number {
+	const n = Number(v)
+	if (!Number.isFinite(n)) return 0
+	return Math.min(100, Math.max(0, n))
+}
+
+/**
+ * Progress-bar colour for Companion buttons. Deliberately NOT the host's configured display colour
+ * (the audience-facing colour can be black): this is an operator surface, so it always uses
+ * the same green / orange / red the host warning thresholds imply.
+ */
+function barZone(data: KumaApiStatus): 'green' | 'orange' | 'red' {
+	const c = barColor(data)
+	return c === BAR_RED ? 'red' : c === BAR_ORANGE ? 'orange' : 'green'
+}
+
+function barColor(data: KumaApiStatus): number {
+	if (data.overtime || data.status === 'countup') return BAR_RED
+	if (data.status === 'paused') return BAR_ORANGE
+	const secs = Number(data.timer_seconds ?? 0)
+	const red = Number(data.color_red_seconds ?? 60)
+	const orange = Number(data.color_orange_seconds ?? 180)
+	if (data.status === 'live') {
+		if (secs <= red) return BAR_RED
+		if (secs <= orange) return BAR_ORANGE
+	}
+	return BAR_GREEN
+}
+
+function formatCutTotal(sec: number | undefined): string {
+	const n = Math.max(0, Math.floor(Number(sec) || 0))
+	return `${Math.floor(n / 60)}:${String(n % 60).padStart(2, '0')}`
+}
+
 export function formatMediaRemaining(seconds: number | null | undefined): string {
 	if (typeof seconds !== 'number' || !Number.isFinite(seconds) || seconds < 0) return ''
 	const total = Math.floor(seconds)
@@ -182,6 +220,12 @@ export function setupVariables(instance: InstanceBase<KumaTypes>): void {
 		ppt_media_remaining: { name: 'PowerPoint: playing clip time left, MM:SS (empty when idle)' },
 		time_glide_active: { name: 'Time Glide: a glide is running (true/false)' },
 		time_jump_active: { name: 'Time Jump: a jump is running (true/false)' },
+		time_cut_total: { name: 'Time Cut: total time cut from this countdown, M:SS (0:00 = no cut)' },
+		timer_remaining_pct: { name: 'Timer: share of the countdown still ahead, 0-100 (number, drives progress bars)' },
+		timer_bar_zone: { name: 'Timer: progress bar zone, green / orange / red (same thresholds as the colour)' },
+		timer_bar_color: {
+			name: 'Timer: progress bar colour as a number (green, orange or red by the host warning thresholds)',
+		},
 		// Timecode / timer TEXT (empty string = no signal) — host v1.19.3+.
 		ltc_timecode: { name: 'LTC input timecode HH:MM:SS:FF (empty = no signal)' },
 		ltc_generator_timecode: { name: 'LTC Generator timecode HH:MM:SS:FF (empty = not running)' },
@@ -275,6 +319,10 @@ export function updateVariables(instance: InstanceBase<KumaTypes>, data: KumaApi
 		ppt_media_remaining: formatMediaRemaining(data.ppt?.media_remaining),
 		time_glide_active: String(data.warp_active ?? false),
 		time_jump_active: String(data.jump_active ?? false),
+		time_cut_total: formatCutTotal(data.cut_total_seconds),
+		timer_remaining_pct: clampPct(data._remaining_pct),
+		timer_bar_color: barColor(data),
+		timer_bar_zone: barZone(data),
 		ltc_timecode: data.ltc_timecode ?? '',
 		ltc_generator_timecode: data.ltc_generator_timecode ?? '',
 		dsan_rx_timer: data.dsan_rx_timer ?? '',
@@ -376,6 +424,10 @@ export function clearVariables(instance: InstanceBase<KumaTypes>): void {
 		ppt_media_remaining: '',
 		time_glide_active: 'false',
 		time_jump_active: 'false',
+		time_cut_total: '0:00',
+		timer_remaining_pct: 0,
+		timer_bar_color: BAR_GREEN,
+		timer_bar_zone: 'green',
 		ltc_timecode: '',
 		ltc_generator_timecode: '',
 		dsan_rx_timer: '',
